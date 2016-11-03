@@ -36,7 +36,7 @@ class VoxforgeConverter(object):
         self.dataset.save()
         self.cleanup()
 
-        return dataset
+        return self.dataset
 
     def prepare_folders(self):
         os.makedirs(self.download_folder, exist_ok=True)

@@ -1,5 +1,4 @@
 import os
-import shutil
 
 from spych.data import dataset
 from spych.utils import textfile
@@ -7,37 +6,29 @@ from spych.utils import text
 
 
 class SiwisConverter(object):
+    """
+    Creates database from siwis corpus for a given language.
+    Can be downloaded at http://www.unige.ch/lettres/linguistique/research/current-projects/latl/siwis/.
+    """
+
     def __init__(self, target_folder, source_folder):
         self.target_folder = target_folder
         self.source_folder = source_folder
 
-        self.temp_folder = os.path.join(target_folder, '__temp')
-
         self.dataset = None
-        self.number_of_downloaded_files = 0
 
-    def get_dataset(self):
+    def get_dataset(self, lang='DE'):
         self.dataset = dataset.Dataset(dataset_folder=self.target_folder)
         self.dataset.save()
 
-        self.prepare_folders()
-
+        self.create_dataset(lang)
         self.dataset.save()
-        self.cleanup()
 
-        return dataset
-
-    def prepare_folders(self):
-        os.makedirs(self.temp_folder, exist_ok=True)
-
-    def cleanup(self):
-        shutil.rmtree(self.temp_folder, ignore_errors=True)
+        return self.dataset
 
     def create_dataset(self, lang='DE'):
         wav_folder = os.path.join(self.source_folder, 'wav', lang)
         text_folder = os.path.join(self.source_folder, 'txt', lang)
-
-        single_datasets = []
 
         genders = None
         gender_file = os.path.join(self.source_folder, 'genders.txt')
