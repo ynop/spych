@@ -96,7 +96,7 @@ def read_separated_lines_generator(path, separator=' ', max_columns=-1):
         print('File doesnt exist or is no file: {}'.format(path))
         return
 
-    f = open(path, 'r')
+    f = open(path, 'r', errors='ignore')
 
     if max_columns > -1:
         max_splits = max_columns - 1

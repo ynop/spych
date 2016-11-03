@@ -17,8 +17,8 @@ class Lexicon(object):
 
     """
 
-    def __init__(self, entries=collections.defaultdict(set)):
-        self.entries = entries
+    def __init__(self, entries=None):
+        self.entries = entries or collections.defaultdict(set)
 
     def get_all_phones(self):
         """

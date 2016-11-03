@@ -36,15 +36,15 @@ class Dataset(object):
     [speaker-id] [gender]
     """
 
-    def __init__(self, dataset_folder=None, wavs={}, utterances={}, transcriptions={}, utt2spk={}, speakers={}):
+    def __init__(self, dataset_folder=None, wavs=None, utterances=None, transcriptions=None, utt2spk=None, speakers=None):
         self.path = dataset_folder
-        self.wavs = wavs
-        self.utterances = utterances
-        self.transcriptions = transcriptions
-        self.utt2spk = utt2spk
-        self.speakers = speakers
+        self.wavs = wavs or {}
+        self.utterances = utterances or {}
+        self.transcriptions = transcriptions or {}
+        self.utt2spk = utt2spk or {}
+        self.speakers = speakers or {}
 
-    def import_wavs(self, wavs={}, base_path=None, copy_files=False):
+    def import_wavs(self, wavs, base_path=None, copy_files=False):
         """
         Import wavs into the dataset.
 
@@ -76,7 +76,7 @@ class Dataset(object):
 
         return wav_id_map
 
-    def add_utterances(self, utterances={}, wav_id_mapping={}):
+    def add_utterances(self, utterances, wav_id_mapping=None):
         """
         Adds the given utterances to the dataset.
 
@@ -93,14 +93,14 @@ class Dataset(object):
 
             old_wav_id = utt_info[0]
 
-            if old_wav_id in wav_id_mapping.keys():
+            if wav_id_mapping and old_wav_id in wav_id_mapping.keys():
                 utt_info[0] = wav_id_mapping[old_wav_id]
 
             self.utterances[utt_id] = utt_info
 
         return utt_id_mapping
 
-    def set_transcriptions(self, transcriptions={}, utt_id_mapping={}):
+    def set_transcriptions(self, transcriptions, utt_id_mapping={}):
         """
         Sets the given transcriptions.
 
@@ -111,12 +111,12 @@ class Dataset(object):
         for import_utt_id, transcription in transcriptions.items():
             utt_id = import_utt_id
 
-            if import_utt_id in utt_id_mapping.keys():
+            if utt_id_mapping and import_utt_id in utt_id_mapping.keys():
                 utt_id = utt_id_mapping[import_utt_id]
 
             self.transcriptions[utt_id] = transcription
 
-    def set_utt2spk(self, utt2spk={}, utt_id_mapping={}, speaker_id_mapping={}):
+    def set_utt2spk(self, utt2spk, utt_id_mapping=None, speaker_id_mapping=None):
         """
         Sets the speakers of the utterances.
 
@@ -128,15 +128,15 @@ class Dataset(object):
             utt_id = import_utt_id
             speaker_id = import_speaker_id
 
-            if import_utt_id in utt_id_mapping.keys():
+            if utt_id_mapping and import_utt_id in utt_id_mapping.keys():
                 utt_id = utt_id_mapping[import_utt_id]
 
-            if import_speaker_id in speaker_id_mapping.keys():
+            if speaker_id_mapping and import_speaker_id in speaker_id_mapping.keys():
                 speaker_id = speaker_id_mapping[import_speaker_id]
 
             self.utt2spk[utt_id] = speaker_id
 
-    def set_speakers(self, speakers={}):
+    def set_speakers(self, speakers):
         """
         Set genders of the speakers.
 
@@ -208,6 +208,9 @@ class Dataset(object):
         :param path: Directory to load dataset from.
         :return:
         """
+
+        print('LOAD wege???')
+
         dataset_folder = os.path.abspath(path)
 
         necessary_files = [WAV_FILE_NAME, SEGMENTS_FILE_NAME]
