@@ -32,8 +32,6 @@ class Dataset(object):
     speakers.txt
     ----------------
     [speaker-id] [gender]
-
-
     """
 
     def __init__(self, dataset_folder=None, wavs={}, utterances={}, transcriptions={}, utt2spk={}, speakers={}):
@@ -49,9 +47,20 @@ class Dataset(object):
     #
 
     def save(self):
+        """
+        Saves the dataset.
+        """
         self.save_to_path(self.path)
 
     def save_to_path(self, path):
+        """
+        Saves the dataset to the given path.
+
+        :param path: Directory to store the dataset (will be created if it doesnt exist).
+        """
+        if self.path is None or self.path == '':
+            raise ValueError('No path given to save dataset')
+
         os.makedirs(path, exist_ok=True)
 
         wav_path = os.path.join(path, WAV_FILE_NAME)
@@ -68,6 +77,12 @@ class Dataset(object):
 
     @classmethod
     def load_from_path(cls, path):
+        """
+        Loads dataset from the given path.
+
+        :param path: Directory to load dataset from.
+        :return:
+        """
         dataset_folder = os.path.abspath(path)
 
         necessary_files = [WAV_FILE_NAME, SEGMENTS_FILE_NAME]
