@@ -1,6 +1,8 @@
 import os
+import shutil
 
 from spych.utils import textfile
+from spych.utils import naming
 
 WAV_FILE_NAME = 'wavs.txt'
 SEGMENTS_FILE_NAME = 'segments.txt'
@@ -41,6 +43,129 @@ class Dataset(object):
         self.transcriptions = transcriptions
         self.utt2spk = utt2spk
         self.speakers = speakers
+
+    def import_wavs(self, wavs={}, base_path=None, copy_files=False):
+        """
+        Import wavs into the dataset.
+
+        :param wavs: Dictionary with wav-id/wav-path pairs.
+        :param copy_files: If the wav files should be copied into this dataset directory.
+        :return: Mapping between old-wav-id and new-wav-id (in case some id already existed in this dataset it can be looked up)
+        """
+        wav_id_map = {}
+
+        for import_wav_id, import_relative_wav_path in wavs.items():
+            wav_id = naming.index_name_if_in_list(import_wav_id, self.wavs.keys())
+            wav_id_map[import_wav_id] = wav_id
+
+            import_wav_path = import_relative_wav_path
+
+            if base_path is not None:
+                import_wav_path = os.path.abspath(os.path.join(base_path, import_relative_wav_path))
+            wav_path = import_wav_path
+
+            if copy_files:
+                import_wav_file_basename, import_wav_file_extension = os.path.splitext(os.path.basename(import_wav_path))
+                wav_file_name = naming.index_name_if_in_list(import_wav_file_basename, self.wavs.values(), suffix=import_wav_file_extension)
+                wav_path = os.path.join(self.path, wav_file_name)
+                shutil.copy(import_wav_path, wav_path)
+
+            relative_wav_path = os.path.relpath(wav_path, self.path)
+
+            self.wavs[wav_id] = relative_wav_path
+
+        return wav_id_map
+
+    def add_utterances(self, utterances={}, wav_id_mapping={}):
+        """
+        Adds the given utterances to the dataset.
+
+        :param utterances: Utterances dict utt-id/[wav-id, start, end]
+        :param wav_id_mapping: Mapping between imported wav-ids and existing wav-ids in the dataset.
+        :return: mapping between imported utt-id and changed id if it already existed in the dataset.
+        """
+        utt_id_mapping = {}
+
+        for import_utt_id, import_utt_info in utterances.items():
+            utt_id = naming.index_name_if_in_list(import_utt_id, self.utterances.keys())
+            utt_info = list(import_utt_info)
+            utt_id_mapping[import_utt_id] = utt_id
+
+            old_wav_id = utt_info[0]
+
+            if old_wav_id in wav_id_mapping.keys():
+                utt_info[0] = wav_id_mapping[old_wav_id]
+
+            self.utterances[utt_id] = utt_info
+
+        return utt_id_mapping
+
+    def set_transcriptions(self, transcriptions={}, utt_id_mapping={}):
+        """
+        Sets the given transcriptions.
+
+        :param transcriptions: utt-id/transcription dict
+        :param utt_id_mapping: mapping between utt-ids in the transcriptions dict and utt-ids in this dataset.
+        :return:
+        """
+        for import_utt_id, transcription in transcriptions.items():
+            utt_id = import_utt_id
+
+            if import_utt_id in utt_id_mapping.keys():
+                utt_id = utt_id_mapping[import_utt_id]
+
+            self.transcriptions[utt_id] = transcription
+
+    def set_utt2spk(self, utt2spk={}, utt_id_mapping={}, speaker_id_mapping={}):
+        """
+        Sets the speakers of the utterances.
+
+        :param utt2spk: utt-id/speaker-id dict
+        :param utt_id_mapping: mapping between utt-ids in the utt2spk dict and utt-ids in this dataset.
+        :return:
+        """
+        for import_utt_id, import_speaker_id in utt2spk.items():
+            utt_id = import_utt_id
+            speaker_id = import_speaker_id
+
+            if import_utt_id in utt_id_mapping.keys():
+                utt_id = utt_id_mapping[import_utt_id]
+
+            if import_speaker_id in speaker_id_mapping.keys():
+                speaker_id = speaker_id_mapping[import_speaker_id]
+
+            self.utt2spk[utt_id] = speaker_id
+
+    def set_speakers(self, speakers={}):
+        """
+        Set genders of the speakers.
+
+        :param speakers: speaker-id/gender dict
+        :return: mapping between imported speaker-id and changed id if it already existed in the dataset.
+        """
+        speaker_mapping = {}
+
+        for import_speaker, info in speakers.items():
+            speaker = naming.index_name_if_in_list(import_speaker, self.speakers.keys())
+            speaker_mapping[import_speaker] = speaker
+
+            self.speakers[speaker] = info
+
+        return speaker_mapping
+
+    def merge_dataset(self, dataset, copy_wavs=False):
+        """
+        Merges the given dataset into this dataset.
+
+        :param dataset: Dataset to merge
+        :param copy_wavs: If True moves the wavs to this datasets folder
+        :return:
+        """
+        wav_id_mapping = self.import_wavs(dataset.wavs, base_path=dataset.path, copy_files=copy_wavs)
+        utt_id_mapping = self.add_utterances(dataset.utterances, wav_id_mapping=wav_id_mapping)
+        speaker_id_mapping = self.set_speakers(speakers=self.speakers)
+        self.set_transcriptions(dataset.transcriptions, utt_id_mapping=utt_id_mapping)
+        self.set_utt2spk(dataset.utt2spk, utt_id_mapping=utt_id_mapping, speaker_id_mapping=speaker_id_mapping)
 
     #
     #   READ / WRITE
