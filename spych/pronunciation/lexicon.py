@@ -35,6 +35,25 @@ class Lexicon(object):
 
         return all_phones
 
+    def add_entries(self, entries):
+        """
+        Adds entries to the lexicon.
+
+        :param entries: dict word/set
+        :return:
+        """
+        for word, pronunciations in entries.items():
+            self.entries[word].update(pronunciations)
+
+    def import_lexicon(self, lexicon):
+        """
+        Import entries from another lexicon.
+
+        :param lexicon: Lexicon to import
+        :return:
+        """
+        self.add_entries(lexicon.entries)
+
     #
     #   READ / WRITE
     #
