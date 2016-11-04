@@ -1,6 +1,8 @@
 import os
 import shutil
+import sndhdr
 
+from spych.audio import format as audio_format
 from spych.utils import textfile
 from spych.utils import naming
 
@@ -43,6 +45,9 @@ class Dataset(object):
         self.transcriptions = transcriptions or {}
         self.utt2spk = utt2spk or {}
         self.speakers = speakers or {}
+
+    def all_speakers(self):
+        return set(self.utt2spk.values())
 
     def import_wavs(self, wavs, base_path=None, copy_files=False):
         """
@@ -208,9 +213,6 @@ class Dataset(object):
         :param path: Directory to load dataset from.
         :return:
         """
-
-        print('LOAD wege???')
-
         dataset_folder = os.path.abspath(path)
 
         necessary_files = [WAV_FILE_NAME, SEGMENTS_FILE_NAME]
@@ -243,3 +245,133 @@ class Dataset(object):
             speakers = textfile.read_key_value_lines(speakers_path)
 
         return cls(dataset_folder, wavs, utterances, transcriptions, utt2spk, speakers)
+
+
+class DatasetValidation(object):
+    def __init__(self, dataset):
+        self.dataset = dataset
+
+        self.missing_wavs = []
+        self.wavs_with_wrong_format = []
+        self.wavs_without_utterances = []
+        self.utterances_with_missing_wav_id = []
+        self.missing_empty_transcriptions = []
+        self.missing_empty_speakers = []
+        self.missing_empty_genders = []
+
+    def check_for_missing_wav_files(self):
+        """
+        Checks if the wav files referenced in the wav.txt are existing.
+
+        :return: dict with missing wav-files wav-id/path
+        """
+        self.missing_wavs = []
+
+        for wav_id, wav_path in self.dataset.wavs.items():
+            full_path = os.path.join(self.dataset.path, wav_path)
+
+            if not os.path.isfile(full_path):
+                self.missing_wavs.append(wav_id)
+
+        return self.missing_wavs
+
+    def check_for_wavs_with_wrong_format(self, expected_format=audio_format.AudioFileFormat.wav_mono_16bit_16k()):
+        """
+        Check for wav files with wrong format.
+
+        :param expected_format: the format the wav files should match
+        :return: List of wav-ids with wrong formatted files.
+        """
+        self.wavs_with_wrong_format = []
+
+        for wav_id, wav_path in self.dataset.wavs.items():
+            full_path = os.path.join(self.dataset.path, wav_path)
+
+            if os.path.isfile(full_path):
+                result = sndhdr.what(full_path)
+
+                if result is None or not expected_format.matches_sound_header(result):
+                    self.wavs_with_wrong_format.append(wav_id)
+
+        return self.wavs_with_wrong_format
+
+    def check_for_wavs_without_utterances(self):
+        """
+        Check if there are any wavs without any utterances.
+
+        :return: List of wav-ids without corresponding utterances.
+        """
+        wavs_with_utterances = set()
+
+        for utt_id, info in self.dataset.utterances.items():
+            if len(info) > 0:
+                if info is not None:
+                    wavs_with_utterances.add(info[0])
+
+        self.wavs_without_utterances = list(set(self.dataset.wavs.keys()) - wavs_with_utterances)
+
+        return self.wavs_without_utterances
+
+    def check_for_utterances_with_wav_id_missing(self):
+        """
+        Check if there are any utterances that reference a wav-id that isn't existing.
+
+        :return: List of utterance-ids with wrong wav-id references.
+        """
+        self.utterances_with_missing_wav_id = []
+
+        for utt_id, info in self.dataset.utterances.items():
+            if len(info) > 0:
+                if info[0] is None or info[0] not in self.dataset.wavs.keys():
+                    self.utterances_with_missing_wav_id.append(utt_id)
+            else:
+                self.utterances_with_missing_wav_id.append(utt_id)
+
+        return self.utterances_with_missing_wav_id
+
+    def check_for_missing_transcriptions(self):
+        """
+        Check for missing or empty transcriptions.
+
+        :return: List of utt-id with missing or empty transcriptions.
+        """
+        self.missing_empty_transcriptions = []
+
+        for utt_id in self.dataset.utterances.keys():
+            if utt_id not in self.dataset.transcriptions.keys() or self.dataset.transcriptions[utt_id] in [None, '']:
+                self.missing_empty_transcriptions.append(utt_id)
+
+        return self.missing_empty_transcriptions
+
+    def check_for_missing_speakers(self):
+        """
+        Check for missing or empty speakers.
+
+        :return: List of utt-id with missing or empty speakers.
+        """
+        self.missing_empty_speakers = []
+
+        for utt_id in self.dataset.utterances.keys():
+            if utt_id not in self.dataset.utt2spk.keys() or self.dataset.utt2spk[utt_id] in [None, '']:
+                self.missing_empty_speakers.append(utt_id)
+
+        return self.missing_empty_speakers
+
+    def check_for_missing_gender(self):
+        """
+        Check for missing or empty genders.
+
+        :return: List of utt-id with missing or empty genders.
+        """
+        self.missing_empty_genders = []
+
+        for speaker_id in self.dataset.all_speakers():
+            if speaker_id not in self.dataset.speakers.keys() or self.dataset.speakers[speaker_id] in [None, '']:
+                self.missing_empty_genders.append(speaker_id)
+
+        return self.missing_empty_genders
+
+
+
+
+
