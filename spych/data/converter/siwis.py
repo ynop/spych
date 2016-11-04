@@ -81,10 +81,11 @@ class SiwisConverter(object):
                 transcriptions[utt_id] = transcription
 
             wavs[wav_id] = wav_path
+            segments[utt_id] = [wav_id]
             utt2spk[utt_id] = speaker
 
         wav_id_mapping = self.dataset.import_wavs(wavs, copy_files=True)
         utt_id_mapping = self.dataset.add_utterances(segments, wav_id_mapping=wav_id_mapping)
-        speaker_id_mapping = self.dataset.set_speakers(speakers={speaker: gender})
+        speaker_id_mapping = self.dataset.set_spk2gender({speaker: gender})
         self.dataset.set_transcriptions(transcriptions, utt_id_mapping=utt_id_mapping)
         self.dataset.set_utt2spk(utt2spk, utt_id_mapping=utt_id_mapping, speaker_id_mapping=speaker_id_mapping)
