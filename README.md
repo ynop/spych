@@ -19,7 +19,7 @@ Python scripts used for working with automatic speech recognition.
     * JSGF
   * Serialize
     * SRGS
-    * (FST)
+    * (FST)
 * Tools
   * MaryTTS Client
 * Assets
