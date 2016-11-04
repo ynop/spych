@@ -1,5 +1,7 @@
 import os
 
+from spych.utils import text
+
 
 def read_separated_lines(path, separator=' ', max_columns=-1):
     """
@@ -83,13 +85,14 @@ def write_separated_lines(path, values, separator=' '):
     f.close()
 
 
-def read_separated_lines_generator(path, separator=' ', max_columns=-1):
+def read_separated_lines_generator(path, separator=' ', max_columns=-1, ignore_lines_starting_with=[]):
     """
     Creates a generator through all lines of a file and returns the splitted line.
 
     :param path: Path to the file.
     :param separator: Separator that is used to split the columns.
     :param max_columns: Number of max columns (if the separator occurs within the last column).
+    :param ignore_lines_starting_with: Lines starting with a string in this list will be ignored.
     :return: generator
     """
     if not os.path.isfile(path):
@@ -105,7 +108,9 @@ def read_separated_lines_generator(path, separator=' ', max_columns=-1):
 
     for line in f:
         stripped_line = line.strip()
-        if stripped_line != '':
+        should_ignore = text.starts_with_prefix_in_list(stripped_line, ignore_lines_starting_with)
+
+        if not should_ignore and stripped_line != '':
             record = stripped_line.split(sep=separator, maxsplit=max_splits)
             record = [field.strip() for field in record]
             yield record
