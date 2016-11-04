@@ -6,7 +6,7 @@ Python scripts used for working with automatic speech recognition.
 
 * Dataset
   * Handle datasets in spych format
-  * Convert datasets to spych format
+  * Convert datasets to spych format
     * TUDA
     * SIWIS
     * VOXFORGE
