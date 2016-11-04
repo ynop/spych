@@ -249,8 +249,15 @@ class Dataset(object):
 
 
 class DatasetValidation(object):
-    def __init__(self, dataset):
+    """
+    Class to validate a dataset.
+
+    Checks different things. But you don't get a true/false result, because that depends on the use case.
+    """
+
+    def __init__(self, dataset, expected_wav_format=audio_format.AudioFileFormat.wav_mono_16bit_16k()):
         self.dataset = dataset
+        self.expected_wav_format = expected_wav_format
 
         self.missing_wavs = []
         self.wavs_with_wrong_format = []
@@ -259,6 +266,20 @@ class DatasetValidation(object):
         self.missing_empty_transcriptions = []
         self.missing_empty_speakers = []
         self.missing_empty_genders = []
+
+    def run_all_checks(self):
+        """
+        Runs all checks. Results can be obtained via instance variables.
+
+        :return:
+        """
+        self.check_for_missing_wav_files()
+        self.check_for_wavs_with_wrong_format()
+        self.check_for_wavs_without_utterances()
+        self.check_for_utterances_with_wav_id_missing()
+        self.check_for_missing_transcriptions()
+        self.check_for_missing_speakers()
+        self.check_for_missing_gender()
 
     def check_for_missing_wav_files(self):
         """
@@ -276,7 +297,7 @@ class DatasetValidation(object):
 
         return self.missing_wavs
 
-    def check_for_wavs_with_wrong_format(self, expected_format=audio_format.AudioFileFormat.wav_mono_16bit_16k()):
+    def check_for_wavs_with_wrong_format(self):
         """
         Check for wav files with wrong format.
 
@@ -291,7 +312,7 @@ class DatasetValidation(object):
             if os.path.isfile(full_path):
                 result = sndhdr.what(full_path)
 
-                if result is None or not expected_format.matches_sound_header(result):
+                if result is None or not self.expected_wav_format.matches_sound_header(result):
                     self.wavs_with_wrong_format.append(wav_id)
 
         return self.wavs_with_wrong_format
