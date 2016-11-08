@@ -97,6 +97,8 @@ class VoxforgeConverter(object):
         info = self.load_readme(etc_folder)
         prompts_file = os.path.join(etc_folder, 'PROMPTS')
         prompts = textfile.read_key_value_lines(prompts_file)
+        prompts_raw_file = os.path.join(etc_folder, 'prompts-original')
+        prompts_raw = textfile.read_key_value_lines(prompts_raw_file)
 
         speaker, gender = self.get_speaker_and_gender(extracted_data, info)
 
@@ -112,6 +114,7 @@ class VoxforgeConverter(object):
         wavs = {}
         segments = {}
         transcriptions = {}
+        transcriptions_raw = {}
         utt2spk = {}
         speakers = {speaker: gender}
 
@@ -125,12 +128,14 @@ class VoxforgeConverter(object):
                 wavs[wav_id] = audio_file_path
                 segments[utterance_id] = [wav_id]
                 transcriptions[utterance_id] = value
+                transcriptions_raw[wav_id] = prompts_raw[wav_id]
                 utt2spk[utterance_id] = speaker
 
         wav_id_mapping = self.dataset.import_wavs(wavs, copy_files=True)
         utt_id_mapping = self.dataset.add_utterances(segments, wav_id_mapping=wav_id_mapping)
         speaker_id_mapping = self.dataset.set_utt2spk(speakers)
         self.dataset.set_transcriptions(transcriptions, utt_id_mapping=utt_id_mapping)
+        self.dataset.set_transcriptions_raw(transcriptions_raw, utt_id_mapping=utt_id_mapping)
         self.dataset.set_utt2spk(utt2spk, utt_id_mapping=utt_id_mapping, speaker_id_mapping=speaker_id_mapping)
 
     def get_speaker_and_gender(self, path, info):

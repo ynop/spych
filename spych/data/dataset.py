@@ -9,6 +9,7 @@ from spych.utils import naming
 WAV_FILE_NAME = 'wavs.txt'
 SEGMENTS_FILE_NAME = 'utterances.txt'
 TRANSCRIPTION_FILE_NAME = 'transcriptions.txt'
+TRANSCRIPTION_RAW_FILE_NAME = 'transcriptions_raw.txt'
 UTT2SPK_FILE_NAME = 'utt2spk.txt'
 SPK2GENDER_FILE_NAME = 'spk2gender.txt'
 
@@ -18,35 +19,47 @@ class Dataset(object):
     Speech corpus in spych format
 
     wavs.txt
-    ----------------
+    --------------------------------
     [wav-id] [relative-wav-path]
 
     utterances.txt
-    ----------------
+    --------------------------------
     [utt-id] [wav-id] [start] [end]
 
     transcriptions.txt
-    ----------------
+    --------------------------------
     [utt-id] [transcription]
 
+    transcriptions_raw.txt
+    --------------------------------
+    [utt-id] [transcription raw]
+
+    Transcription with punctuation.
+
     utt2spk.txt
-    ----------------
+    --------------------------------
     [utt-id] [speaker-id]
 
     spk2gender.txt
-    ----------------
+    --------------------------------
     [speaker-id] [gender]
     """
 
-    def __init__(self, dataset_folder=None, wavs=None, utterances=None, transcriptions=None, utt2spk=None, spk2gender=None):
+    def __init__(self, dataset_folder={}, wavs={}, utterances={}, transcriptions={}, utt2spk={}, spk2gender={}, transcriptions_raw={}):
         self.path = dataset_folder
-        self.wavs = wavs or {}
-        self.utterances = utterances or {}
-        self.transcriptions = transcriptions or {}
-        self.utt2spk = utt2spk or {}
-        self.spk2gender = spk2gender or {}
+        self.wavs = dict(wavs)
+        self.utterances = dict(utterances)
+        self.transcriptions = dict(transcriptions)
+        self.transcriptions_raw = dict(transcriptions_raw)
+        self.utt2spk = dict(utt2spk)
+        self.spk2gender = dict(spk2gender)
 
     def all_speakers(self):
+        """
+        Get set of all speakers.
+
+        :return: Set
+        """
         return set(self.utt2spk.values())
 
     def import_wavs(self, wavs, base_path=None, copy_files=False):
@@ -54,6 +67,7 @@ class Dataset(object):
         Import wavs into the dataset.
 
         :param wavs: Dictionary with wav-id/wav-path pairs.
+        :param base_path: Path from where the wav-paths from wavs are valid.
         :param copy_files: If the wav files should be copied into this dataset directory.
         :return: Mapping between old-wav-id and new-wav-id (in case some id already existed in this dataset it can be looked up)
         """
@@ -121,6 +135,22 @@ class Dataset(object):
 
             self.transcriptions[utt_id] = transcription
 
+    def set_transcriptions_raw(self, transcriptions_raw, utt_id_mapping={}):
+        """
+        Sets the given raw transcriptions.
+
+        :param transcriptions_raw: utt-id/transcription_raw dict
+        :param utt_id_mapping: mapping between utt-ids in the raw transcriptions dict and utt-ids in this dataset.
+        :return:
+        """
+        for import_utt_id, transcription_raw in transcriptions_raw.items():
+            utt_id = import_utt_id
+
+            if utt_id_mapping and import_utt_id in utt_id_mapping.keys():
+                utt_id = utt_id_mapping[import_utt_id]
+
+            self.transcriptions_raw[utt_id] = transcription_raw
+
     def set_utt2spk(self, utt2spk, utt_id_mapping=None, speaker_id_mapping=None):
         """
         Sets the speakers of the utterances.
@@ -172,6 +202,7 @@ class Dataset(object):
         speaker_id_mapping = self.set_spk2gender(dataset.spk2gender)
         self.set_transcriptions(dataset.transcriptions, utt_id_mapping=utt_id_mapping)
         self.set_utt2spk(dataset.utt2spk, utt_id_mapping=utt_id_mapping, speaker_id_mapping=speaker_id_mapping)
+        self.set_transcriptions_raw(dataset.transcriptions_raw, utt_id_mapping=utt_id_mapping)
 
     #
     #   READ / WRITE
@@ -197,14 +228,16 @@ class Dataset(object):
         wav_path = os.path.join(path, WAV_FILE_NAME)
         utterances_path = os.path.join(path, SEGMENTS_FILE_NAME)
         transcriptions_path = os.path.join(path, TRANSCRIPTION_FILE_NAME)
+        transcriptions_raw_path = os.path.join(path, TRANSCRIPTION_RAW_FILE_NAME)
         utt2spk_path = os.path.join(path, UTT2SPK_FILE_NAME)
         spk2gender_path = os.path.join(path, SPK2GENDER_FILE_NAME)
 
         textfile.write_separated_lines(wav_path, self.wavs)
-        textfile.write_separated_lines(utterances_path, self.utterances)
+        self.write_utterances(utterances_path)
         textfile.write_separated_lines(transcriptions_path, self.transcriptions)
         textfile.write_separated_lines(utt2spk_path, self.utt2spk)
         textfile.write_separated_lines(spk2gender_path, self.spk2gender)
+        textfile.write_separated_lines(transcriptions_raw_path, self.transcriptions_raw)
 
     @classmethod
     def load_from_path(cls, path):
@@ -227,17 +260,22 @@ class Dataset(object):
         wav_path = os.path.join(dataset_folder, WAV_FILE_NAME)
         utterances_path = os.path.join(dataset_folder, SEGMENTS_FILE_NAME)
         transcriptions_path = os.path.join(dataset_folder, TRANSCRIPTION_FILE_NAME)
+        transcriptions_raw_path = os.path.join(dataset_folder, TRANSCRIPTION_RAW_FILE_NAME)
         utt2spk_path = os.path.join(dataset_folder, UTT2SPK_FILE_NAME)
         spk2gender_path = os.path.join(dataset_folder, SPK2GENDER_FILE_NAME)
 
         wavs = textfile.read_key_value_lines(wav_path)
         utterances = textfile.read_separated_lines_with_first_key(utterances_path, max_columns=4)
         transcriptions = {}
+        transcriptions_raw = {}
         utt2spk = {}
         spk2gender = {}
 
         if os.path.isfile(transcriptions_path):
             transcriptions = textfile.read_key_value_lines(transcriptions_path)
+
+        if os.path.isfile(transcriptions_raw_path):
+            transcriptions_raw = textfile.read_key_value_lines(transcriptions_raw_path)
 
         if os.path.isfile(utt2spk_path):
             utt2spk = textfile.read_key_value_lines(utt2spk_path)
@@ -245,7 +283,34 @@ class Dataset(object):
         if os.path.isfile(spk2gender_path):
             spk2gender = textfile.read_key_value_lines(spk2gender_path)
 
-        return cls(dataset_folder, wavs, utterances, transcriptions, utt2spk, spk2gender)
+        return cls(dataset_folder, wavs, utterances, transcriptions, utt2spk, spk2gender, transcriptions_raw)
+
+    def write_utterances(self, path):
+        """
+        Writes the utterances to the file at the given path.
+        -1 if start/end is not given or is None.
+
+        :param path: Path
+        """
+        f = open(path, 'w')
+
+        for key in sorted(self.utterances.keys()):
+            value = self.utterances[key]
+
+            utt_id = value[0]
+            wav_id = value[1]
+            start = -1
+            end = -1
+
+            if len(value) > 2 and value[2] is not None:
+                start = value[2]
+
+            if len(value) > 3 and value[3] is not None:
+                end = value[3]
+
+            f.write('{} {} {} {}\n'.format(utt_id, wav_id, start, end))
+
+        f.close()
 
 
 class DatasetValidation(object):
@@ -392,8 +457,3 @@ class DatasetValidation(object):
                 self.missing_empty_genders.append(speaker_id)
 
         return self.missing_empty_genders
-
-
-
-
-

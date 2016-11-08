@@ -1,3 +1,5 @@
+import re
+
 
 def remove_punctuation(text):
     """
@@ -6,7 +8,7 @@ def remove_punctuation(text):
     :param text: Text
     :return: Text without punctuation.
     """
-    return str(text).replace(r'\w+', '')
+    return re.sub(r'[^\w\s]', '', text)
 
 
 def starts_with_prefix_in_list(text, prefixes):

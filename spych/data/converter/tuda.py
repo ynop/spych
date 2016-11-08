@@ -21,21 +21,22 @@ class TudaConverter(object):
         self.dataset = dataset.Dataset(dataset_folder=self.target_folder)
         self.dataset.save()
 
-        self.create_dataset()
+        self._create_dataset()
         self.dataset.save()
 
         return self.dataset
 
-    def create_dataset(self):
+    def _create_dataset(self):
         for part in ['train', 'dev', 'test']:
             source_path = os.path.join(self.source_folder, part)
 
-            self.add_folder(source_path)
+            self._add_folder(source_path)
 
-    def add_folder(self, source_path):
+    def _add_folder(self, source_path):
         wavs = {}
         segments = {}
         transcriptions = {}
+        transcriptions_raw = {}
         speakers = {}
         genders = {}
 
@@ -46,6 +47,7 @@ class TudaConverter(object):
                 soup = BeautifulSoup(xml_file, "xml")
                 xml_id, __ = os.path.splitext(file)
                 transcription = soup.recording.cleaned_sentence
+                transcription_raw = soup.recording.sentence
                 gender = soup.recording.gender.string
                 speakerid = soup.recording.speaker_id.string
 
@@ -60,6 +62,7 @@ class TudaConverter(object):
                         segments[utt_id] = [wav_id]
                         transcriptions[utt_id] = transcription
                         speakers[utt_id] = speakerid
+                        transcriptions_raw[utt_id] = transcription_raw
 
                         if gender == 'male':
                             genders[speakerid] = 'm'
@@ -70,4 +73,5 @@ class TudaConverter(object):
         utt_id_mapping = self.dataset.add_utterances(segments, wav_id_mapping=wav_id_mapping)
         speaker_id_mapping = self.dataset.set_utt2spk(genders)
         self.dataset.set_transcriptions(transcriptions, utt_id_mapping=utt_id_mapping)
+        self.dataset.set_transcriptions_raw(transcriptions_raw, utt_id_mapping=utt_id_mapping)
         self.dataset.set_utt2spk(speakers, utt_id_mapping=utt_id_mapping, speaker_id_mapping=speaker_id_mapping)

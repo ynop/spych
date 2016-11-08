@@ -20,6 +20,14 @@ class Lexicon(object):
     def __init__(self, entries=None):
         self.entries = entries or collections.defaultdict(set)
 
+    def get_all_words(self):
+        """
+        Returns a set of all words occuring in the lexicon.
+
+        :return: Set
+        """
+        return set(self.entries.keys())
+
     def get_all_phones(self):
         """
         Get a set of all phones that appear in the lexicon.
@@ -79,13 +87,14 @@ class Lexicon(object):
         f.close()
 
     @classmethod
-    def load_from_file(cls, path, separator=' ', index_multi_pronunciations=False):
+    def load_from_file(cls, path, separator=' ', index_multi_pronunciations=False, lower_case=True):
         """
         Load lexicon from file.
 
         :param path: Path to read lexicon file from.
         :param separator: Separator that is used between word and pronunciation.
         :param index_multi_pronunciations: If multiple pronunciations are indexed (  ALPHA(0) ALPHA(1) ).
+        :param lower_case: if True read
         :return:
         """
         gen = textfile.read_separated_lines_generator(path, separator=separator, max_columns=2)
@@ -95,6 +104,10 @@ class Lexicon(object):
         for record in gen:
             if len(record) == 2:
                 word = record[0]
+
+                if lower_case:
+                    word = word.lower()
+
                 pronunciation = record[1]
 
                 if index_multi_pronunciations:

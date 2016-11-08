@@ -52,6 +52,7 @@ class SiwisConverter(object):
         wavs = {}
         segments = {}
         transcriptions = {}
+        transcriptions_raw = {}
         utt2spk = {}
 
         for file in os.listdir(wav_folder):
@@ -76,9 +77,11 @@ class SiwisConverter(object):
             if transcription is None:
                 print("Failed to get transcription for {}!!!".format(file))
             else:
+                transcription_raw = transcription
                 transcription = text.remove_punctuation(transcription)
                 transcription = transcription.upper()
                 transcriptions[utt_id] = transcription
+                transcription_raw[utt_id] = transcription_raw
 
             wavs[wav_id] = wav_path
             segments[utt_id] = [wav_id]
@@ -88,4 +91,5 @@ class SiwisConverter(object):
         utt_id_mapping = self.dataset.add_utterances(segments, wav_id_mapping=wav_id_mapping)
         speaker_id_mapping = self.dataset.set_spk2gender({speaker: gender})
         self.dataset.set_transcriptions(transcriptions, utt_id_mapping=utt_id_mapping)
+        self.dataset.set_transcriptions_raw(transcriptions_raw, utt_id_mapping=utt_id_mapping)
         self.dataset.set_utt2spk(utt2spk, utt_id_mapping=utt_id_mapping, speaker_id_mapping=speaker_id_mapping)
