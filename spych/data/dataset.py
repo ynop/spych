@@ -4,6 +4,7 @@ import sndhdr
 
 from spych.audio import format as audio_format
 from spych.utils import textfile
+from spych.utils import jsonfile
 from spych.utils import naming
 
 WAV_FILE_NAME = 'wavs.txt'
@@ -11,7 +12,13 @@ SEGMENTS_FILE_NAME = 'utterances.txt'
 TRANSCRIPTION_FILE_NAME = 'transcriptions.txt'
 TRANSCRIPTION_RAW_FILE_NAME = 'transcriptions_raw.txt'
 UTT2SPK_FILE_NAME = 'utt2spk.txt'
-SPK2GENDER_FILE_NAME = 'spk2gender.txt'
+SPEAKER_INFO_FILE_NAME = 'speaker_info.json'
+
+SPEAKER_INFO_GENDER = 'gender'
+SPEAKER_INFO_SYNTHESIZED = 'synthesized'
+SPEAKER_INFO_SYNTHESIZER_VOICE = 'synthesizer_voice'
+SPEAKER_INFO_SYNTHESIZER_EFFECTS = 'synthesizer_effects'
+SPEAKER_INFO_SYNTHESIZER_TOOL = 'synthesizer_tool'
 
 
 class Dataset(object):
@@ -40,19 +47,25 @@ class Dataset(object):
     --------------------------------
     [utt-id] [speaker-id]
 
-    spk2gender.txt
+    speaker_info.json
     --------------------------------
-    [speaker-id] [gender]
+    {
+        "speaker_id" : {
+            "gender" : "m"/"f",
+            ...
+        },
+        ...
+    }
     """
 
-    def __init__(self, dataset_folder={}, wavs={}, utterances={}, transcriptions={}, utt2spk={}, spk2gender={}, transcriptions_raw={}):
+    def __init__(self, dataset_folder={}, wavs={}, utterances={}, transcriptions={}, utt2spk={}, transcriptions_raw={}, speaker_info={}):
         self.path = dataset_folder
         self.wavs = dict(wavs)
         self.utterances = dict(utterances)
         self.transcriptions = dict(transcriptions)
         self.transcriptions_raw = dict(transcriptions_raw)
         self.utt2spk = dict(utt2spk)
-        self.spk2gender = dict(spk2gender)
+        self.speaker_info = dict(speaker_info)
 
     def all_speakers(self):
         """
@@ -61,6 +74,16 @@ class Dataset(object):
         :return: Set
         """
         return set(self.utt2spk.values())
+
+    def get_gender_of_speaker(self, speaker_id):
+        """
+        Returns gender 'm'/'f'/None
+
+        :param speaker_id: Speaker ID
+        :return: Gender
+        """
+        if speaker_id in self.speaker_info.keys() and SPEAKER_INFO_GENDER in self.speaker_info[speaker_id].keys():
+            return self.speaker_info[speaker_id][SPEAKER_INFO_GENDER]
 
     def import_wavs(self, wavs, base_path=None, copy_files=False):
         """
@@ -172,20 +195,20 @@ class Dataset(object):
 
             self.utt2spk[utt_id] = speaker_id
 
-    def set_spk2gender(self, spk2gender):
+    def add_speaker_info(self, speaker_info):
         """
-        Set genders of the speakers.
+        Sets info about speakers.
 
-        :param spk2gender: speaker-id/gender dict
+        :param speaker_info: dict speaker_id/infodict
         :return: mapping between imported speaker-id and changed id if it already existed in the dataset.
         """
         speaker_mapping = {}
 
-        for import_speaker, gender in spk2gender.items():
-            speaker = naming.index_name_if_in_list(import_speaker, self.spk2gender.keys())
-            speaker_mapping[import_speaker] = speaker
+        for import_speaker_id, info_dict in speaker_info.items():
+            speaker_id = naming.index_name_if_in_list(import_speaker_id, self.speaker_info.keys())
+            speaker_mapping[import_speaker_id] = speaker_id
 
-            self.spk2gender[speaker] = gender
+            self.speaker_info[speaker_id] = info_dict
 
         return speaker_mapping
 
@@ -199,7 +222,7 @@ class Dataset(object):
         """
         wav_id_mapping = self.import_wavs(dataset.wavs, base_path=dataset.path, copy_files=copy_wavs)
         utt_id_mapping = self.add_utterances(dataset.utterances, wav_id_mapping=wav_id_mapping)
-        speaker_id_mapping = self.set_spk2gender(dataset.spk2gender)
+        speaker_id_mapping = self.add_speaker_info(dataset.speaker_info)
         self.set_transcriptions(dataset.transcriptions, utt_id_mapping=utt_id_mapping)
         self.set_utt2spk(dataset.utt2spk, utt_id_mapping=utt_id_mapping, speaker_id_mapping=speaker_id_mapping)
         self.set_transcriptions_raw(dataset.transcriptions_raw, utt_id_mapping=utt_id_mapping)
@@ -230,13 +253,13 @@ class Dataset(object):
         transcriptions_path = os.path.join(path, TRANSCRIPTION_FILE_NAME)
         transcriptions_raw_path = os.path.join(path, TRANSCRIPTION_RAW_FILE_NAME)
         utt2spk_path = os.path.join(path, UTT2SPK_FILE_NAME)
-        spk2gender_path = os.path.join(path, SPK2GENDER_FILE_NAME)
+        spk_info_path = os.path.join(path, SPEAKER_INFO_FILE_NAME)
 
         textfile.write_separated_lines(wav_path, self.wavs)
         self.write_utterances(utterances_path)
         textfile.write_separated_lines(transcriptions_path, self.transcriptions)
         textfile.write_separated_lines(utt2spk_path, self.utt2spk)
-        textfile.write_separated_lines(spk2gender_path, self.spk2gender)
+        jsonfile.write_json_to_file(spk_info_path, self.speaker_info)
         textfile.write_separated_lines(transcriptions_raw_path, self.transcriptions_raw)
 
     @classmethod
@@ -262,14 +285,14 @@ class Dataset(object):
         transcriptions_path = os.path.join(dataset_folder, TRANSCRIPTION_FILE_NAME)
         transcriptions_raw_path = os.path.join(dataset_folder, TRANSCRIPTION_RAW_FILE_NAME)
         utt2spk_path = os.path.join(dataset_folder, UTT2SPK_FILE_NAME)
-        spk2gender_path = os.path.join(dataset_folder, SPK2GENDER_FILE_NAME)
+        spk_info_path = os.path.join(dataset_folder, SPEAKER_INFO_FILE_NAME)
 
         wavs = textfile.read_key_value_lines(wav_path)
         utterances = textfile.read_separated_lines_with_first_key(utterances_path, max_columns=4)
         transcriptions = {}
         transcriptions_raw = {}
         utt2spk = {}
-        spk2gender = {}
+        speaker_info = {}
 
         if os.path.isfile(transcriptions_path):
             transcriptions = textfile.read_key_value_lines(transcriptions_path)
@@ -280,10 +303,16 @@ class Dataset(object):
         if os.path.isfile(utt2spk_path):
             utt2spk = textfile.read_key_value_lines(utt2spk_path)
 
-        if os.path.isfile(spk2gender_path):
-            spk2gender = textfile.read_key_value_lines(spk2gender_path)
+        if os.path.isfile(spk_info_path):
+            speaker_info = jsonfile.read_json_file(spk_info_path)
 
-        return cls(dataset_folder, wavs, utterances, transcriptions, utt2spk, spk2gender, transcriptions_raw)
+        return cls(dataset_folder=dataset_folder,
+                   wavs=wavs,
+                   utterances=utterances,
+                   transcriptions=transcriptions,
+                   utt2spk=utt2spk,
+                   transcriptions_raw=transcriptions_raw,
+                   speaker_info=speaker_info)
 
     def write_utterances(self, path):
         """
@@ -452,7 +481,8 @@ class DatasetValidation(object):
         self.missing_empty_genders = []
 
         for speaker_id in self.dataset.all_speakers():
-            if speaker_id not in self.dataset.spk2gender.keys() or self.dataset.spk2gender[speaker_id] in [None, '']:
+            if speaker_id not in self.dataset.speaker_info.keys() or SPEAKER_INFO_GENDER not in self.dataset.speaker_info[speaker_id].keys() or \
+                            self.dataset.speaker_info[speaker_id][SPEAKER_INFO_GENDER] is None:
                 self.missing_empty_genders.append(speaker_id)
 
         return self.missing_empty_genders

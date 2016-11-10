@@ -16,6 +16,7 @@ class VoxforgeConverter(object):
     example url: http://www.repository.voxforge1.org/downloads/de/Trunk/Audio/Main/16kHz_16bit/
 
     """
+
     def __init__(self, target_folder, url):
         self.target_folder = target_folder
         self.url = url
@@ -43,7 +44,7 @@ class VoxforgeConverter(object):
         os.makedirs(self.extraction_folder, exist_ok=True)
 
     def cleanup(self):
-        #shutil.rmtree(self.download_folder, ignore_errors=True)
+        # shutil.rmtree(self.download_folder, ignore_errors=True)
         shutil.rmtree(self.extraction_folder, ignore_errors=True)
 
     def download_data(self):
@@ -116,7 +117,6 @@ class VoxforgeConverter(object):
         transcriptions = {}
         transcriptions_raw = {}
         utt2spk = {}
-        speakers = {speaker: gender}
 
         for key, value in prompts.items():
             wav_id = os.path.basename(key)
@@ -133,7 +133,11 @@ class VoxforgeConverter(object):
 
         wav_id_mapping = self.dataset.import_wavs(wavs, copy_files=True)
         utt_id_mapping = self.dataset.add_utterances(segments, wav_id_mapping=wav_id_mapping)
-        speaker_id_mapping = self.dataset.set_utt2spk(speakers)
+        speaker_id_mapping = self.dataset.add_speaker_info({
+            speaker: {
+                dataset.SPEAKER_INFO_GENDER: gender
+            }
+        })
         self.dataset.set_transcriptions(transcriptions, utt_id_mapping=utt_id_mapping)
         self.dataset.set_transcriptions_raw(transcriptions_raw, utt_id_mapping=utt_id_mapping)
         self.dataset.set_utt2spk(utt2spk, utt_id_mapping=utt_id_mapping, speaker_id_mapping=speaker_id_mapping)

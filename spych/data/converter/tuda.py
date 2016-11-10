@@ -38,7 +38,7 @@ class TudaConverter(object):
         transcriptions = {}
         transcriptions_raw = {}
         speakers = {}
-        genders = {}
+        speaker_info = {}
 
         for file in os.listdir(source_path):
             if file.endswith('.xml'):
@@ -65,13 +65,17 @@ class TudaConverter(object):
                         transcriptions_raw[utt_id] = transcription_raw
 
                         if gender == 'male':
-                            genders[speakerid] = 'm'
-                        else:
-                            genders[speakerid] = 'f'
+                            speaker_info[speakerid] = {
+                                dataset.SPEAKER_INFO_GENDER: 'm'
+                            }
+                        elif gender == 'female':
+                            speaker_info[speakerid] = {
+                                dataset.SPEAKER_INFO_GENDER: 'f'
+                            }
 
         wav_id_mapping = self.dataset.import_wavs(wavs, copy_files=True)
         utt_id_mapping = self.dataset.add_utterances(segments, wav_id_mapping=wav_id_mapping)
-        speaker_id_mapping = self.dataset.set_utt2spk(genders)
+        speaker_id_mapping = self.dataset.add_speaker_info(speaker_info)
         self.dataset.set_transcriptions(transcriptions, utt_id_mapping=utt_id_mapping)
         self.dataset.set_transcriptions_raw(transcriptions_raw, utt_id_mapping=utt_id_mapping)
         self.dataset.set_utt2spk(speakers, utt_id_mapping=utt_id_mapping, speaker_id_mapping=speaker_id_mapping)

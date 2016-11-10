@@ -107,6 +107,14 @@ class Synthesizer(object):
         transcriptions = {}
         transcriptions_raw = {}
         utt2spk = {}
+        speaker_info = {
+            speaker_id: {
+                dataset.SPEAKER_INFO_SYNTHESIZED: True,
+                dataset.SPEAKER_INFO_SYNTHESIZER_TOOL: "marytts",
+                dataset.SPEAKER_INFO_SYNTHESIZER_EFFECTS: dict(self._config.effects),
+                dataset.SPEAKER_INFO_SYNTHESIZER_VOICE: self._config.voice
+            }
+        }
 
         if corpus_clean_path is not None:
             sentences_cleaned = textfile.read_key_value_lines(corpus_clean_path, separator='\t')
@@ -133,11 +141,11 @@ class Synthesizer(object):
 
         wav_id_mapping = data.import_wavs(wavs, copy_files=False)
         utt_id_mapping = data.add_utterances(utterances, wav_id_mapping=wav_id_mapping)
+        speaker_id_mapping = data.add_speaker_info(speaker_info)
         data.set_transcriptions(transcriptions, utt_id_mapping=utt_id_mapping)
         data.set_transcriptions_raw(transcriptions_raw, utt_id_mapping=utt_id_mapping)
-        data.set_utt2spk(utt2spk, utt_id_mapping=utt_id_mapping)
+        data.set_utt2spk(utt2spk, utt_id_mapping=utt_id_mapping, speaker_id_mapping=speaker_id_mapping)
 
         data.save()
 
         return data
-
