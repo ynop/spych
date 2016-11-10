@@ -294,19 +294,18 @@ class Dataset(object):
         """
         f = open(path, 'w')
 
-        for key in sorted(self.utterances.keys()):
-            value = self.utterances[key]
+        for utt_id in sorted(self.utterances.keys()):
+            value = self.utterances[utt_id]
 
-            utt_id = value[0]
-            wav_id = value[1]
+            wav_id = value[0]
             start = -1
             end = -1
 
-            if len(value) > 2 and value[2] is not None:
-                start = value[2]
+            if len(value) > 1 and value[1] is not None:
+                start = value[1]
 
-            if len(value) > 3 and value[3] is not None:
-                end = value[3]
+            if len(value) > 2 and value[2] is not None:
+                end = value[2]
 
             f.write('{} {} {} {}\n'.format(utt_id, wav_id, start, end))
 
