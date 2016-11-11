@@ -46,8 +46,8 @@ class TudaConverter(object):
                 xml_file = open(full_path, 'r')
                 soup = BeautifulSoup(xml_file, "xml")
                 xml_id, __ = os.path.splitext(file)
-                transcription = soup.recording.cleaned_sentence
-                transcription_raw = soup.recording.sentence
+                transcription = soup.recording.cleaned_sentence.string
+                transcription_raw = soup.recording.sentence.string
                 gender = soup.recording.gender.string
                 speakerid = soup.recording.speaker_id.string
 

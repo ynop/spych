@@ -31,6 +31,8 @@ def synthesize_sentence_corpus_and_create_datasets_with_configs(corpus_path, con
     configurations = jsonfile.read_json_file(config_path)
 
     for config in configurations:
+        print('Synthesize {} ...'.format(config['dataset_name']))
+
         dataset_path = os.path.join(target_folder, config['dataset_name'])
         synthesizer_config = synthesizer.SynthesizerConfig(locale=config['locale'], voice=config['voice'], effects=config['effects'])
         synthesizer_instance = mary.MarySynthesizer(config=synthesizer_config)
