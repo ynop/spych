@@ -65,7 +65,7 @@ class MaryClient:
 
 
 def parse_phonemes_from_response(response_content):
-    soup = BeautifulSoup(response_content)
+    soup = BeautifulSoup(response_content, "lxml")
 
     raw_tokens = OrderedDict()
 
