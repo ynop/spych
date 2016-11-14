@@ -17,8 +17,61 @@ class Lexicon(object):
 
     """
 
-    def __init__(self, entries=None):
+    def __init__(self, entries=None, case_sensitive=False):
+        """
+        Create Lexicon.
+
+        :param entries: Entries
+        :param case_sensitive: if False all will be converted to lower case.
+        """
+        self.case_sensitive=case_sensitive
         self.entries = entries or collections.defaultdict(set)
+
+    def add_entry(self, word, pronunciation):
+        """
+        Adds the pronunciation for the given word.
+
+        :param word: Word
+        :param pronunciation: Pronunciation (space separated phones) or list of pronunciations
+        """
+
+        if type(pronunciation) == list:
+            self.entries[word].update(pronunciation)
+        else:
+            self.entries[word].add(pronunciation)
+
+    def add_entries(self, entries):
+        """
+        Update the lexicon with the given entries.
+
+        :param entries: Entries to add
+        """
+        for word, pronunciations in entries.items():
+            self.add_entry(word, pronunciations)
+
+    def remove_entry(self, word):
+        """
+        Removes all pronunciations for the given word.
+
+        :param word: Word
+        """
+        del self.entries[word]
+
+    def get_number_of_entries(self, count_all=True):
+        """
+        Get number of entries.
+
+        :param count_all: If True it also count multiple pronunciations per word.
+        :return: Count
+        """
+        if count_all:
+            count = 0
+            for value, pronunciations in self.entries.items():
+                count += len(pronunciations)
+
+            return count
+        else:
+            return len(self.entries)
 
     def get_all_words(self):
         """
@@ -42,16 +95,6 @@ class Lexicon(object):
                 all_phones.update(phones)
 
         return all_phones
-
-    def add_entries(self, entries):
-        """
-        Adds entries to the lexicon.
-
-        :param entries: dict word/set
-        :return:
-        """
-        for word, pronunciations in entries.items():
-            self.entries[word].update(pronunciations)
 
     def import_lexicon(self, lexicon):
         """

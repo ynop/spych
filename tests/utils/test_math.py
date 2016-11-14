@@ -3,7 +3,7 @@ import unittest
 from spych.utils import math
 
 
-class TextFileUtilsTest(unittest.TestCase):
+class MathUtilsTest(unittest.TestCase):
     def test_calculate_absolute_proportions(self):
         result = math.calculate_absolute_proportions(100, {'a': 0.5, 'b': 0.5})
         self.assertDictEqual({'a': 50, 'b': 50}, result)
