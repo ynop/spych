@@ -3,6 +3,7 @@ from cement.core import controller
 from spych.data import dataset
 from spych.data import dataset_validation
 from spych.data import dataset_fixing
+from spych.data.converter import kaldi
 
 
 class DatasetController(controller.CementBaseController):
@@ -44,7 +45,7 @@ class DatasetValidationController(controller.CementBaseController):
         description = "Validate a dataset and print results."
 
         arguments = [
-            (['--path'], dict(action='store', help='path to dataset')),
+            (['path'], dict(action='store', help='path to dataset')),
             (['--details'], dict(action='store_true', help='Show details.'))
         ]
 
@@ -89,7 +90,7 @@ class DatasetFixController(controller.CementBaseController):
         description = "Fix a dataset."
 
         arguments = [
-            (['--path'], dict(action='store', help='path to dataset'))
+            (['path'], dict(action='store', help='path to dataset'))
         ]
 
     @controller.expose(hide=True)
@@ -98,5 +99,41 @@ class DatasetFixController(controller.CementBaseController):
         fixer = dataset_fixing.DatasetFixer(dset)
 
         fixer.fix()
+
+        print('Done')
+
+
+class DatasetExportController(controller.CementBaseController):
+    class Meta:
+        label = 'export'
+        stacked_on = 'dataset'
+        stacked_type = 'nested'
+        description = "Export a dataset to another format."
+
+        arguments = [
+            (['path'], dict(action='store', help='path to dataset to export')),
+            (['out'], dict(action='store', help='path to export the dataset to.')),
+            (['format'], dict(action='store', help='format (kaldi)', choices=['kaldi'])),
+            (['--copy-files'], dict(action='store_true', help='Also copy the audio files to the out folder.'))
+        ]
+
+    @controller.expose(hide=True)
+    def default(self):
+        dset = dataset.Dataset.load_from_path(self.app.pargs.path)
+
+        target_path = self.app.pargs.out
+        target_format = self.app.pargs.format
+
+        if target_format == 'kaldi':
+            print('Exporting:')
+            print('From: {}'.format(dset.path))
+            print('To: {}'.format(target_path))
+            print('Format: {}'.format(target_format))
+
+            exporter = kaldi.KaldiExporter(target_path, dset, copy_wavs=self.app.pargs.copy_files)
+            exporter.run()
+
+        else:
+            print('Format {} not supported'.format(target_format))
 
         print('Done')

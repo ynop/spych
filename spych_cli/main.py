@@ -11,7 +11,8 @@ class SpychApp(foundation.CementApp):
             base.BaseController,
             dataset.DatasetController,
             dataset.DatasetValidationController,
-            dataset.DatasetFixController
+            dataset.DatasetFixController,
+            dataset.DatasetExportController
         ]
 
         extensions = ['mustache']
