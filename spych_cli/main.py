@@ -9,7 +9,9 @@ class SpychApp(foundation.CementApp):
         label = 'spych'
         handlers = [
             base.BaseController,
-            dataset.DatasetController
+            dataset.DatasetController,
+            dataset.DatasetValidationController,
+            dataset.DatasetFixController
         ]
 
         extensions = ['mustache']

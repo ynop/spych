@@ -81,6 +81,23 @@ class Dataset(object):
         """
         return set(self.utt2spk.values())
 
+    def utterances_of_wav(self, wav_id):
+        """
+        Returns all utterances that are in the given wav.
+
+        :param wav_id: Wav ID
+        :return: Set of uttIDs
+        """
+        utt_ids = set()
+
+        for utt_id, info in self.utterances.items():
+            wid = info[0]
+
+            if wid == wav_id:
+                utt_ids.add(utt_id)
+
+        return utt_ids
+
     def get_gender_of_speaker(self, speaker_id):
         """
         Returns gender 'm'/'f'/None
@@ -139,6 +156,38 @@ class Dataset(object):
         :return: True if has info dict
         """
         return speaker_id in self.speaker_info.keys()
+
+    def remove_wavs(self, wavs, remove_files=False):
+        """
+        Deletes the given wavs.
+
+        :param wavs: List of wavids
+        :param remove_files: Also delete the files
+        """
+
+        for wav_id in wavs:
+            if remove_files:
+                path = os.path.join(self.path, self.wavs[wav_id])
+                if os.path.exists(path):
+                    os.remove(path)
+
+            utt_ids_to_delete = self.utterances_of_wav(wav_id)
+
+            self.remove_utterances(utt_ids_to_delete)
+
+            del self.wavs[wav_id]
+
+    def remove_utterances(self, utterances):
+        """
+        Removes the given utterances by id.
+
+        :param utterances: list of utterance ids
+        """
+        for utt_id in utterances:
+            del self.utterances[utt_id]
+            del self.transcriptions[utt_id]
+            del self.utt2spk[utt_id]
+            del self.transcriptions_raw[utt_id]
 
     def import_wavs(self, wavs, base_path=None, copy_files=False):
         """

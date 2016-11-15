@@ -85,4 +85,6 @@ class TudaConverter(object):
         subset.set_transcriptions_raw(transcriptions_raw, utt_id_mapping=utt_id_mapping)
         subset.set_utt2spk(speakers, utt_id_mapping=utt_id_mapping, speaker_id_mapping=speaker_id_mapping)
 
+        subset.save()
+
         return subset
