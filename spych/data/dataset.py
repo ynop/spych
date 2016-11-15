@@ -66,6 +66,13 @@ class Dataset(object):
         self.utt2spk = dict(utt2spk)
         self.speaker_info = dict(speaker_info)
 
+    def name(self):
+        """
+        Get the name of the dataset (= basename)
+        :return: name
+        """
+        return os.path.basename(self.path)
+
     def all_speakers(self):
         """
         Get set of all speakers.
