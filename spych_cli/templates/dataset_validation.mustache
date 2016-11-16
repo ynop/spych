@@ -3,9 +3,11 @@ Dataset {{name}}:
 -------------------------------------------------------------------------------------
 
 Missing Wavs                            {{num_missing_wavs}}
+Empty Wavs                              {{num_empty_wavs}}
 Wavs with wrong format                  {{num_wavs_with_wrong_format}}
 Wavs without any utterances             {{num_wavs_without_utterances}}
 Utterances without Wav ID               {{num_utterances_with_missing_wav_id}}
+Utterances with invalid start/end time  {{num_utterances_with_invalid_start_end}}
 Missing or empty transcriptions         {{num_missing_empty_transcriptions}}
 Missing or empty speakers               {{num_missing_empty_speakers}}
 Missing or empty genders                {{num_missing_empty_genders}}
@@ -21,6 +23,11 @@ Missing Wavs:
     - {{.}}
 {{/missing_wavs}}
 
+Empty Wavs:
+{{#empty_wavs}}
+    - {{.}}
+{{/empty_wavs}}
+
 Wavs with wrong format:
 {{#wavs_with_wrong_format}}
     - {{.}}
@@ -35,6 +42,11 @@ Utterances without Wav ID:
 {{#utterances_with_missing_wav_id}}
     - {{.}}
 {{/utterances_with_missing_wav_id}}
+
+Utterances with invalid start/end time:
+{{#utterances_with_invalid_start_end}}
+    - {{.}}
+{{/utterances_with_invalid_start_end}}
 
 Missing or empty transcriptions:
 {{#missing_empty_transcriptions}}

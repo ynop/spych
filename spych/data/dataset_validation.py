@@ -18,8 +18,10 @@ class DatasetValidation(object):
 
         self.missing_wavs = []
         self.wavs_with_wrong_format = []
+        self.empty_wavs = []
         self.wavs_without_utterances = []
         self.utterances_with_missing_wav_id = []
+        self.utterances_with_invalid_start_end = []
         self.missing_empty_transcriptions = []
         self.missing_empty_speakers = []
         self.missing_empty_genders = []
@@ -32,9 +34,10 @@ class DatasetValidation(object):
         :return:
         """
         self.check_for_missing_wav_files()
-        self.check_for_wavs_with_wrong_format()
+        self.check_for_empty_wavs_or_with_wrong_format()
         self.check_for_wavs_without_utterances()
         self.check_for_utterances_with_wav_id_missing()
+        self.check_for_utterances_with_invalid_start_end()
         self.check_for_missing_transcriptions()
         self.check_for_missing_speakers()
         self.check_for_missing_gender()
@@ -55,14 +58,14 @@ class DatasetValidation(object):
 
         return self.missing_wavs
 
-    def check_for_wavs_with_wrong_format(self):
+    def check_for_empty_wavs_or_with_wrong_format(self):
         """
-        Check for wav files with wrong format.
+        Check for wav files with wrong format or empty wavs.
 
-        :param expected_format: the format the wav files should match
-        :return: List of wav-ids with wrong formatted files.
+        :return: tuple (List of wav-ids with wrong formatted files / List with empty wavs).
         """
         self.wavs_with_wrong_format = []
+        self.empty_wavs = []
 
         for wav_id, wav_path in self.dataset.wavs.items():
             full_path = os.path.join(self.dataset.path, wav_path)
@@ -72,8 +75,10 @@ class DatasetValidation(object):
 
                 if result is None or not self.expected_wav_format.matches_sound_header(result):
                     self.wavs_with_wrong_format.append(wav_id)
+                elif result.nframes <= 0:
+                    self.empty_wavs.append(wav_id)
 
-        return self.wavs_with_wrong_format
+        return self.wavs_with_wrong_format, self.empty_wavs
 
     def check_for_wavs_without_utterances(self):
         """
@@ -108,6 +113,34 @@ class DatasetValidation(object):
                 self.utterances_with_missing_wav_id.append(utt_id)
 
         return self.utterances_with_missing_wav_id
+
+    def check_for_utterances_with_invalid_start_end(self):
+        """
+        Check if there are any utterances that have invalid start/end time.
+
+        Must be:
+            - float
+            - can be empty --> 0 -1
+            - end >= start
+            - start >= 0
+            - end >= 0 or end = -1
+
+        :return: List of utterance-ids with wrong wav-id references.
+        """
+        self.utterances_with_invalid_start_end = []
+
+        for utt_id, info in self.dataset.utterances.items():
+            if len(info) > 1:
+                try:
+                    start = float(info[1])
+                    end = float(info[2])
+
+                    if start < 0 or (end != -1 and (end <= 0 or start >= end)):
+                        self.utterances_with_invalid_start_end.append(utt_id)
+                except ValueError:
+                    self.utterances_with_invalid_start_end.append(utt_id)
+
+        return self.utterances_with_invalid_start_end
 
     def check_for_missing_transcriptions(self):
         """

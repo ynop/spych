@@ -14,6 +14,7 @@ class DatasetFixer(object):
 
     def fix(self):
         self.delete_wavs_with_missing_files()
+        self.delete_empty_wavs()
         self.delete_wavs_with_wrong_format()
         self.delete_utterances_with_missing_wav()
 
@@ -21,6 +22,12 @@ class DatasetFixer(object):
         self.run_validation()
 
         self.data.remove_wavs(self.validation.missing_wavs, remove_files=False)
+        self.data.save()
+
+    def delete_empty_wavs(self):
+        self.run_validation()
+
+        self.data.remove_wavs(self.validation.empty_wavs, remove_files=True)
         self.data.save()
 
     def delete_wavs_with_wrong_format(self):

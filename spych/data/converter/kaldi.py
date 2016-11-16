@@ -18,7 +18,7 @@ class KaldiExporter(object):
         self.copy_wavs = copy_wavs
 
     def run(self):
-        os.makedirs(self.target_folder)
+        os.makedirs(self.target_folder, exist_ok=True)
 
         spk2gender = {}
         wavs = {}
@@ -55,11 +55,14 @@ class KaldiExporter(object):
             value = self.dataset.utterances[utt_id]
 
             wav_id = value[0]
-            start = -1
+            start = 0
             end = -1
 
             if len(value) > 1 and value[1] is not None:
-                start = value[1]
+                if value[1] == -1 or value[1] == '-1':
+                    start = 0
+                else:
+                    start = value[1]
 
             if len(value) > 2 and value[2] is not None:
                 end = value[2]

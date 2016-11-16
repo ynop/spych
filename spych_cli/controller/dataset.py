@@ -14,7 +14,7 @@ class DatasetController(controller.CementBaseController):
         description = "Working with datasets."
 
         arguments = [
-            (['--path'],
+            (['path'],
              dict(action='store', help='path to dataset'))
         ]
 
@@ -59,9 +59,11 @@ class DatasetValidationController(controller.CementBaseController):
         info_data = {
             "name": dset.name(),
             "num_missing_wavs": len(validator.missing_wavs),
+            "num_empty_wavs": len(validator.empty_wavs),
             "num_wavs_with_wrong_format": len(validator.wavs_with_wrong_format),
             "num_wavs_without_utterances": len(validator.wavs_without_utterances),
             "num_utterances_with_missing_wav_id": len(validator.utterances_with_missing_wav_id),
+            "num_utterances_with_invalid_start_end": len(validator.utterances_with_invalid_start_end),
             "num_missing_empty_transcriptions": len(validator.missing_empty_transcriptions),
             "num_missing_empty_speakers": len(validator.missing_empty_speakers),
             "num_missing_empty_genders": len(validator.missing_empty_genders),
@@ -71,9 +73,11 @@ class DatasetValidationController(controller.CementBaseController):
         if self.app.pargs.details:
             info_data["details"] = True
             info_data["missing_wavs"] = validator.missing_wavs
+            info_data["empty_wavs"] = validator.empty_wavs
             info_data["wavs_with_wrong_format"] = validator.wavs_with_wrong_format
             info_data["wavs_without_utterances"] = validator.wavs_without_utterances
             info_data["utterances_with_missing_wav_id"] = validator.utterances_with_missing_wav_id
+            info_data["utterances_with_invalid_start_end"] = validator.utterances_with_invalid_start_end
             info_data["missing_empty_transcriptions"] = validator.missing_empty_transcriptions
             info_data["missing_empty_speakers"] = validator.missing_empty_speakers
             info_data["missing_empty_genders"] = validator.missing_empty_genders

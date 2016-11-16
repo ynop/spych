@@ -431,11 +431,14 @@ class Dataset(object):
             value = self.utterances[utt_id]
 
             wav_id = value[0]
-            start = -1
+            start = 0
             end = -1
 
             if len(value) > 1 and value[1] is not None:
-                start = value[1]
+                if int(value[1]) < 0:
+                    start = 0
+                else:
+                    start = value[1]
 
             if len(value) > 2 and value[2] is not None:
                 end = value[2]
