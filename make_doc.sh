@@ -4,6 +4,8 @@ cwd=$(pwd)
 
 cd docs_sources
 
+make clean
+
 make html
 
 cd $cwd
