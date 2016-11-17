@@ -36,6 +36,32 @@ class DatasetController(controller.CementBaseController):
 
         self.app.render(info_data, 'dataset_info.mustache')
 
+    @controller.expose(help="Create an empty dataset.")
+    def new(self):
+        dset = dataset.Dataset(self.app.pargs.path)
+        dset.save()
+
+
+class DatasetMergeController(controller.CementBaseController):
+    class Meta:
+        label = 'merge'
+        stacked_on = 'dataset'
+        stacked_type = 'nested'
+        description = "Merge two datasets."
+
+        arguments = [
+            (['path'], dict(action='store', help='path to target dataset')),
+            (['merge_path'], dict(action='store', help='path to dataset to merge into target dataset')),
+            (['--copy-wavs'], dict(action='store_true', help='Also copy the audio files to the target dataset folder.'))
+        ]
+
+    @controller.expose(hide=True)
+    def default(self):
+        target = dataset.Dataset.load_from_path(self.app.pargs.path)
+        merge = dataset.Dataset.load_from_path(self.app.pargs.merge_path)
+        target.merge_dataset(merge, copy_wavs=self.app.pargs.copy_wavs)
+        target.save()
+
 
 class DatasetValidationController(controller.CementBaseController):
     class Meta:
@@ -118,7 +144,7 @@ class DatasetExportController(controller.CementBaseController):
             (['path'], dict(action='store', help='path to dataset to export')),
             (['out'], dict(action='store', help='path to export the dataset to.')),
             (['format'], dict(action='store', help='format (kaldi)', choices=['kaldi'])),
-            (['--copy-files'], dict(action='store_true', help='Also copy the audio files to the out folder.'))
+            (['--copy-wavs'], dict(action='store_true', help='Also copy the audio files to the out folder.'))
         ]
 
     @controller.expose(hide=True)
@@ -134,7 +160,7 @@ class DatasetExportController(controller.CementBaseController):
             print('To: {}'.format(target_path))
             print('Format: {}'.format(target_format))
 
-            exporter = kaldi.KaldiExporter(target_path, dset, copy_wavs=self.app.pargs.copy_files)
+            exporter = kaldi.KaldiExporter(target_path, dset, copy_wavs=self.app.pargs.copy_wavs)
             exporter.run()
 
         else:
