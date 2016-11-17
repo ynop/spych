@@ -50,8 +50,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'spych'
-copyright = '2016, M.Büchi'
-author = 'M.Büchi'
+copyright = '2016, M.Buechi'
+author = 'M.Buechi'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -266,7 +266,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'spych.tex', 'spych Documentation',
-     'M.Büchi', 'manual'),
+     'M.Buechi', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
