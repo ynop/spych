@@ -34,7 +34,7 @@
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="spych 0.1 documentation" href="#"/>
-        <link rel="next" title="Intro" href="intro.html"/> 
+        <link rel="next" title="Usage" href="usage/index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -84,7 +84,6 @@
             
             
                 <ul>
-<li class="toctree-l1"><a class="reference internal" href="intro.html">Intro</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage/index.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="developer_documentation/index.html">Developer Documentation</a></li>
 </ul>
@@ -133,10 +132,80 @@
             
   <div class="section" id="welcome-to-spych-s-documentation">
 <h1>Welcome to spych&#8217;s documentation!<a class="headerlink" href="#welcome-to-spych-s-documentation" title="Permalink to this headline">¶</a></h1>
-<p>Contents:</p>
+<p>Spych is a set of tools for tasks related to automatic speech recognition.</p>
+<p><strong>Python Codebase</strong>: All functions are usable with python.</p>
+<p><strong>CLI</strong>: The most used functions are accessible via command line interface. The command line interface is described in chapter <a class="reference internal" href="usage/index.html#section-usage"><span class="std std-ref">Usage</span></a>.</p>
+<div class="section" id="functionality">
+<h2>Functionality<a class="headerlink" href="#functionality" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Dataset<ul>
+<li>Custom format &#8220;spych format&#8221;</li>
+<li>Merging</li>
+<li>Splitting</li>
+<li>Validation</li>
+<li>Fix</li>
+<li>&#8211;&gt; spych format<ul>
+<li>TUDA</li>
+<li>SIWIS</li>
+<li>VOXFORGE</li>
+</ul>
+</li>
+<li>spych format &#8211;&gt;<ul>
+<li>Kaldi</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Lexicon<ul>
+<li>Read/Write</li>
+<li>Merge</li>
+<li>Generate<ul>
+<li>MaryTTS</li>
+<li>CMUDict</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Grammar<ul>
+<li>Parse<ul>
+<li>JSGF</li>
+</ul>
+</li>
+<li>Serialize<ul>
+<li>SRGS</li>
+<li>(FST)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Synthesis<ul>
+<li>Batch synthesizing with config file</li>
+</ul>
+</li>
+<li>Tools<ul>
+<li>MaryTTS Client</li>
+</ul>
+</li>
+<li>Assets</li>
+<li>Utils</li>
+</ul>
+</div>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<p>Spych runs with <strong>python3</strong> and needs the following packages:</p>
+<blockquote>
+<div><ul class="simple">
+<li>modgrammar</li>
+<li>beautifulsoup4</li>
+<li>requests</li>
+<li>cement (for the CLI)</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="contents">
+<h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="intro.html">Intro</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage/index.html">Usage</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="usage/index.html#dataset">Dataset</a></li>
 <li class="toctree-l2"><a class="reference internal" href="usage/index.html#lexicon">Lexicon</a></li>
@@ -144,6 +213,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="developer_documentation/index.html">Developer Documentation</a></li>
 </ul>
+</div>
 </div>
 </div>
 <div class="section" id="indices-and-tables">
@@ -162,7 +232,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="intro.html" class="btn btn-neutral float-right" title="Intro" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="usage/index.html" class="btn btn-neutral float-right" title="Usage" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
     </div>
