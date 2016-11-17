@@ -6,7 +6,7 @@ Spych is a set of tools for tasks related to automatic speech recognition.
 
 **Python Codebase**: All functions are usable with python.
 
-**CLI**: The most used functions are accessible via command line interface. The command line interface is described in chapter :ref:`section_usage`.
+**CLI**: The most used functions are accessible via command line interface.
 
 ## Functionality
 
