@@ -15,6 +15,7 @@ class SpychApp(foundation.CementApp):
             dataset.DatasetFixController,
             dataset.DatasetExportController,
             dataset.DatasetMergeController,
+            dataset.DatasetSubsetController,
             lexicon.LexiconController,
             synthesis.SynthesisController
         ]

@@ -3,6 +3,7 @@ from cement.core import controller
 from spych.data import dataset
 from spych.data import dataset_validation
 from spych.data import dataset_fixing
+from spych.data import dataset_split
 from spych.data.converter import kaldi
 
 
@@ -61,6 +62,45 @@ class DatasetMergeController(controller.CementBaseController):
         merge = dataset.Dataset.load_from_path(self.app.pargs.merge_path)
         target.merge_dataset(merge, copy_wavs=self.app.pargs.copy_wavs)
         target.save()
+
+
+class DatasetSubsetController(controller.CementBaseController):
+    class Meta:
+        label = 'subset'
+        stacked_on = 'dataset'
+        stacked_type = 'nested'
+        description = "Create subset of a datset."
+
+        arguments = [
+            (['path'], dict(action='store', help='Path to the dataset, from which to create a subset.')),
+            (['subset_path'], dict(action='store', help='Path to store the subset.')),
+            (['filter'], dict(action='store', help='Filter to apply (Regex).')),
+            (['filtered_entity'], dict(action='store', help='Which entity to filter.', choices=['utterance-id', 'speaker-id'])),
+            (['--copy-wavs'], dict(action='store_true', help='Also copy the audio files to the subset folder.'))
+        ]
+
+    @controller.expose(hide=True)
+    def default(self):
+        source_dataset = dataset.Dataset.load_from_path(self.app.pargs.path)
+        splitter = dataset_split.DatasetSplitter(source_dataset)
+
+        entity = self.app.pargs.filtered_entity
+
+        if entity == 'utterance-id':
+            subset = splitter.create_subset_with_filtered_utterances(self.app.pargs.subset_path, self.app.pargs.filter, copy_wavs=self.app.pargs.copy_wavs)
+        elif entity == 'speaker-id':
+            subset = splitter.create_subset_with_filtered_speakers(self.app.pargs.subset_path, self.app.pargs.filter, copy_wavs=self.app.pargs.copy_wavs)
+
+        if subset is not None:
+            info_data = {
+                "name": subset.name(),
+                "path": subset.path,
+                "num_utterances": len(subset.utterances),
+                "num_wavs": len(subset.wavs),
+                "num_speakers": len(subset.all_speakers())
+            }
+
+            self.app.render(info_data, 'dataset_info.mustache')
 
 
 class DatasetValidationController(controller.CementBaseController):

@@ -1,6 +1,7 @@
 import random
 import copy
 import collections
+import re
 
 from spych.data import dataset
 from spych.utils import math
@@ -44,6 +45,51 @@ class DatasetSplitter(object):
 
         return subsets
 
+    def create_subset_with_filtered_utterances(self, path, utterance_filter, copy_wavs=False):
+        """
+        Creates a subset with all utterances matching the given filter.
+
+        :param path: Path to store the subset.
+        :param utterance_filter: Filter (Regex)
+        :param copy_wavs: If True, copies the wav files to the subsets folder
+        :return: Subset
+        """
+        matching_utt_ids = []
+
+        pattern = re.compile(utterance_filter)
+
+        for utt_id in self.dataset.utterances.keys():
+            match = pattern.fullmatch(utt_id)
+
+            if match is not None:
+                matching_utt_ids.append(utt_id)
+
+        subset = self.get_subset_with_utterances(path, matching_utt_ids, copy_wavs=copy_wavs)
+        return subset
+
+    def create_subset_with_filtered_speakers(self, path, speaker_filter, copy_wavs=False):
+        """
+        Creates a subset with all speakers matching the given filter.
+
+        :param path: Path to store the subset.
+        :param speaker_filter: Filter (Regex)
+        :param copy_wavs: If True, copies the wav files to the subsets folder
+        :return: Subset
+        """
+        matching_utt_ids = []
+        spk2utt = self.dataset.get_speaker_to_utterances()
+
+        pattern = re.compile(speaker_filter)
+
+        for speaker_id in self.dataset.all_speakers():
+            match = pattern.fullmatch(speaker_id)
+
+            if match is not None:
+                matching_utt_ids.extend(spk2utt[speaker_id])
+
+        subset = self.get_subset_with_utterances(path, matching_utt_ids, copy_wavs=copy_wavs)
+        return subset
+
     def get_subset_with_utterances(self, path, utterance_ids, copy_wavs=False):
         """
         Creates subset at given path with the given utterance-ids.
@@ -81,7 +127,7 @@ class DatasetSplitter(object):
                 speaker_id = utt2spk[utt_id]
 
                 if self.dataset.speaker_has_info(speaker_id):
-                    speaker_info[speaker_info] = copy.deepcopy(self.dataset.speaker_info[speaker_id])
+                    speaker_info[speaker_id] = copy.deepcopy(self.dataset.speaker_info[speaker_id])
 
         wav_id_mapping = subset.import_wavs(wavs, base_path=self.dataset.path, copy_files=False)
         utt_id_mapping = subset.add_utterances(utterances, wav_id_mapping=wav_id_mapping)
