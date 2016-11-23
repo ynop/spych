@@ -64,7 +64,7 @@ class SiwisConverter(object):
             utt_id = '{}_{}'.format(speaker, wav_id)
 
             try:
-                f = open(txt_path, 'r')
+                f = open(txt_path, 'r', encoding='utf-8')
                 transcription = f.read().strip()
                 f.close()
             except UnicodeDecodeError:

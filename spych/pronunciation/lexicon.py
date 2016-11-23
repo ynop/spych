@@ -118,7 +118,7 @@ class Lexicon(object):
         :param index_multi_pronunciations: Adds indexes (  ALPHA(0) ALPHA(1) ) if there are multiple pronunciations for one word.
         :return:
         """
-        f = open(path, 'w')
+        f = open(path, 'w', encoding='utf-8')
 
         for word in sorted(self.entries.keys()):
             for index, phones in enumerate(self.entries[word]):

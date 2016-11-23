@@ -45,12 +45,13 @@ class DatasetSplitter(object):
 
         return subsets
 
-    def create_subset_with_filtered_utterances(self, path, utterance_filter, copy_wavs=False):
+    def create_subset_with_filtered_utterances(self, path, utterance_filter, max_items=-1, copy_wavs=False):
         """
         Creates a subset with all utterances matching the given filter.
 
         :param path: Path to store the subset.
         :param utterance_filter: Filter (Regex)
+        :param max_items: max number of utterances
         :param copy_wavs: If True, copies the wav files to the subsets folder
         :return: Subset
         """
@@ -58,44 +59,96 @@ class DatasetSplitter(object):
 
         pattern = re.compile(utterance_filter)
 
-        for utt_id in self.dataset.utterances.keys():
+        index = 0
+        utterance_ids = list(self.dataset.utterances.keys())
+
+        while index < len(utterance_ids) and (max_items == -1 or index < max_items):
+            utt_id = utterance_ids[index]
             match = pattern.fullmatch(utt_id)
 
             if match is not None:
                 matching_utt_ids.append(utt_id)
 
+            index += 1
+
         subset = self.get_subset_with_utterances(path, matching_utt_ids, copy_wavs=copy_wavs)
         return subset
 
-    def create_subset_with_filtered_speakers(self, path, speaker_filter, copy_wavs=False):
+    def create_subset_with_filtered_speakers(self, path, speaker_filter, max_items=-1, copy_wavs=False):
         """
         Creates a subset with all speakers matching the given filter.
 
         :param path: Path to store the subset.
         :param speaker_filter: Filter (Regex)
+        :param max_items: max number of speakers
         :param copy_wavs: If True, copies the wav files to the subsets folder
         :return: Subset
         """
-        matching_utt_ids = []
-        spk2utt = self.dataset.get_speaker_to_utterances()
+        matching_utt_ids = set()
 
         pattern = re.compile(speaker_filter)
 
-        for speaker_id in self.dataset.all_speakers():
+        index = 0
+        speaker_ids = list(self.dataset.all_speakers())
+
+        while index < len(speaker_ids) and (max_items == -1 or index < max_items):
+            speaker_id = speaker_ids[index]
             match = pattern.fullmatch(speaker_id)
 
             if match is not None:
-                matching_utt_ids.extend(spk2utt[speaker_id])
+                matching_utt_ids.update(self.dataset.utterances_of_speaker(speaker_id))
+
+            index += 1
 
         subset = self.get_subset_with_utterances(path, matching_utt_ids, copy_wavs=copy_wavs)
         return subset
+
+    def create_subset_with_random_utterances(self, path, num_utterances, copy_wavs=False):
+        """
+        Create a subset with the given number of utterances, random picked.
+
+        :param path: Path to store the subset.
+        :param num_utterances: Number of utterances to pick.
+        :param copy_wavs: If True, copies the wav files to the subsets folder
+        :return: Subset
+        """
+        if num_utterances < 0:
+            count = random.randint(1, len(self.dataset.utterances))
+        else:
+            count = num_utterances
+
+        utterance_ids = random.sample(self.dataset.utterances.keys(), count)
+
+        return self.get_subset_with_utterances(path, utterance_ids, copy_wavs=copy_wavs)
+
+    def create_subset_with_random_speakers(self, path, num_speakers, copy_wavs=False):
+        """
+        Create a subset with the given number of speakers, random picked.
+
+        :param path: Path to store the subset.
+        :param num_speakers: Number of speakers to pick.
+        :param copy_wavs: If True, copies the wav files to the subsets folder
+        :return: Subset
+        """
+        if num_speakers < 0:
+            count = random.randint(1, len(self.dataset.all_speakers()))
+        else:
+            count = num_speakers
+
+        speaker_ids = random.sample(self.dataset.all_speakers(), count)
+        utterance_ids = set()
+
+        for speaker_id in speaker_ids:
+            utterance_ids.update(self.dataset.utterances_of_speaker(speaker_id))
+
+        return self.get_subset_with_utterances(path, utterance_ids, copy_wavs=copy_wavs)
 
     def get_subset_with_utterances(self, path, utterance_ids, copy_wavs=False):
         """
         Creates subset at given path with the given utterance-ids.
 
         :param path: Path for subset
-        :param utterance_ids: List of utterance-ids
+        :param utterance_ids: List/Set of utterance-ids
         :param copy_wavs: If True, copies the wav files to the subsets folder
         :return: subset
         """

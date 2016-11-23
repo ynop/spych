@@ -162,7 +162,7 @@ class VoxforgeConverter(object):
         readme_file = os.path.join(etc_folder, 'README')
         info = {}
 
-        f = open(readme_file, 'r', errors='ignore')
+        f = open(readme_file, 'r', errors='ignore', encoding='utf-8')
 
         for raw_line in f:
             line = raw_line.strip()

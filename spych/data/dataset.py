@@ -98,6 +98,21 @@ class Dataset(object):
 
         return utt_ids
 
+    def utterances_of_speaker(self, speaker_id):
+        """
+        Returns all utterance-ids of the given speaker.
+
+        :param speaker_id: Speaker ID
+        :return: Set of uttIDs
+        """
+        utt_ids = set()
+
+        for utt_id, utt_speaker_id in self.utt2spk.items():
+            if utt_speaker_id == speaker_id:
+                utt_ids.add(utt_id)
+
+        return utt_ids
+
     def get_gender_of_speaker(self, speaker_id):
         """
         Returns gender 'm'/'f'/None

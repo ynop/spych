@@ -69,13 +69,14 @@ class DatasetSubsetController(controller.CementBaseController):
         label = 'subset'
         stacked_on = 'dataset'
         stacked_type = 'nested'
-        description = "Create subset of a datset."
+        description = "Create subset of a dataset. If no filter is given it just takes random items."
 
         arguments = [
             (['path'], dict(action='store', help='Path to the dataset, from which to create a subset.')),
             (['subset_path'], dict(action='store', help='Path to store the subset.')),
-            (['filter'], dict(action='store', help='Filter to apply (Regex).')),
-            (['filtered_entity'], dict(action='store', help='Which entity to filter.', choices=['utterance-id', 'speaker-id'])),
+            (['--filter'], dict(action='store', help='Filter to apply on the entity-id (Regex).')),
+            (['--count'], dict(action='store', help='Max number of items of the entity to use for the subset.')),
+            (['--entity'], dict(action='store', help='Which entity to filter.', choices=['utterance-id', 'speaker-id'], default='utterance-id')),
             (['--copy-wavs'], dict(action='store_true', help='Also copy the audio files to the subset folder.'))
         ]
 
@@ -84,12 +85,31 @@ class DatasetSubsetController(controller.CementBaseController):
         source_dataset = dataset.Dataset.load_from_path(self.app.pargs.path)
         splitter = dataset_split.DatasetSplitter(source_dataset)
 
-        entity = self.app.pargs.filtered_entity
+        subset_path = self.app.pargs.subset_path
+        entity = self.app.pargs.entity
+        filter_pattern = self.app.pargs.filter
+        count = self.app.pargs.count
+        copy_wavs = self.app.pargs.copy_wavs
 
-        if entity == 'utterance-id':
-            subset = splitter.create_subset_with_filtered_utterances(self.app.pargs.subset_path, self.app.pargs.filter, copy_wavs=self.app.pargs.copy_wavs)
-        elif entity == 'speaker-id':
-            subset = splitter.create_subset_with_filtered_speakers(self.app.pargs.subset_path, self.app.pargs.filter, copy_wavs=self.app.pargs.copy_wavs)
+        try:
+            if count is None:
+                count = -1
+            else:
+                count = int(count)
+
+        except ValueError:
+            count = -1
+
+        if filter_pattern is None:
+            if entity == 'utterance-id':
+                subset = splitter.create_subset_with_random_utterances(subset_path, count, copy_wavs=copy_wavs)
+            elif entity == 'speaker-id':
+                subset = splitter.create_subset_with_random_speakers(subset_path, count, copy_wavs=copy_wavs)
+        else:
+            if entity == 'utterance-id':
+                subset = splitter.create_subset_with_filtered_utterances(subset_path, filter_pattern, max_items=count, copy_wavs=copy_wavs)
+            elif entity == 'speaker-id':
+                subset = splitter.create_subset_with_filtered_speakers(subset_path, filter_pattern, max_items=count, copy_wavs=copy_wavs)
 
         if subset is not None:
             info_data = {

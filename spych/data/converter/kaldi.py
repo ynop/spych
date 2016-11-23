@@ -49,7 +49,7 @@ class KaldiExporter(object):
         -1 if start/end is not given or is None.
         """
 
-        f = open(os.path.join(self.target_folder, SEGMENTS_NAME), 'w')
+        f = open(os.path.join(self.target_folder, SEGMENTS_NAME), 'w', encoding='utf-8')
 
         for utt_id in sorted(self.dataset.utterances.keys()):
             value = self.dataset.utterances[utt_id]

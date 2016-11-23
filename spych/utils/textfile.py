@@ -68,7 +68,7 @@ def write_separated_lines(path, values, separator=' '):
     :param separator: Separator to use between columns.
     :return:
     """
-    f = open(path, 'w')
+    f = open(path, 'w', encoding='utf-8')
 
     if type(values) is dict:
         for key in sorted(values.keys()):
@@ -99,7 +99,7 @@ def read_separated_lines_generator(path, separator=' ', max_columns=-1, ignore_l
         print('File doesnt exist or is no file: {}'.format(path))
         return
 
-    f = open(path, 'r', errors='ignore')
+    f = open(path, 'r', errors='ignore', encoding='utf-8')
 
     if max_columns > -1:
         max_splits = max_columns - 1

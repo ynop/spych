@@ -45,7 +45,7 @@ class TudaConverter(object):
         for file in os.listdir(source_path):
             if file.endswith('.xml'):
                 full_path = os.path.join(source_path, file)
-                xml_file = open(full_path, 'r')
+                xml_file = open(full_path, 'r', encoding='utf-8')
                 soup = BeautifulSoup(xml_file, "lxml")
                 xml_id, __ = os.path.splitext(file)
                 transcription = soup.recording.cleaned_sentence.string
