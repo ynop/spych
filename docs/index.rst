@@ -74,6 +74,8 @@ Spych runs with **python3** and needs the following packages:
    * beautifulsoup4
    * requests
    * cement (for the CLI)
+   * httplib2
+   * pystache
 
 
 Contents
