@@ -1,9 +1,9 @@
 from cement.core import foundation
 
-from spych_cli.controller import base
-from spych_cli.controller import dataset
-from spych_cli.controller import synthesis
-from spych_cli.controller import lexicon
+from spych.cli.controller import base
+from spych.cli.controller import dataset
+from spych.cli.controller import synthesis
+from spych.cli.controller import lexicon
 
 class SpychApp(foundation.CementApp):
     class Meta:
@@ -23,11 +23,16 @@ class SpychApp(foundation.CementApp):
         extensions = ['mustache']
 
         # Internal templates (ship with application code)
-        template_module = 'spych_cli.templates'
+        template_module = 'spych.cli.templates'
 
         # default output handler
         output_handler = 'mustache'
 
 
-with SpychApp() as app:
-    app.run()
+def run():
+    with SpychApp() as app:
+        app.run()
+
+
+if __name__ == "__main__":
+    run()
