@@ -84,6 +84,7 @@ Contents
 .. toctree::
    :maxdepth: 2
 
+   formats/index
    usage/index
    developer_documentation/index
 
