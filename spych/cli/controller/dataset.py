@@ -64,6 +64,38 @@ class DatasetMergeController(controller.CementBaseController):
         target.save()
 
 
+class DatasetSplitController(controller.CementBaseController):
+    class Meta:
+        label = 'split'
+        stacked_on = 'dataset'
+        stacked_type = 'nested'
+        description = "Splits a dataset into multiple subsets."
+
+        arguments = [
+            (['path'], dict(action='store', help='path to dataset')),
+            (['splits'], dict(action='store', nargs='+', help='Splits e.g. ../train=0.6 test=0.3 val=0.1')),
+            (['--copy-wavs'], dict(action='store_true', help='Also copy the audio files to the target dataset folder.')),
+            (['--split-speakers'], dict(action='store_true', help='If given, a speaker occurs in only one subset.'))
+        ]
+
+    @controller.expose(hide=True)
+    def default(self):
+        target = dataset.Dataset.load_from_path(self.app.pargs.path)
+        splitter = dataset_split.DatasetSplitter(target)
+
+        if self.app.pargs.splits:
+            config = {}
+
+            for split in self.app.pargs.splits:
+                parts = split.split('=')
+                config[parts[0]] = float(parts[1])
+
+            subsets=splitter.split(config, split_speakers=self.app.pargs.split_speakers, copy_wavs=self.app.pargs.copy_wavs)
+
+            for subset in subsets:
+                print("{} : {}".format(subset.name(), len(subset.utterances)))
+
+
 class DatasetSubsetController(controller.CementBaseController):
     class Meta:
         label = 'subset'

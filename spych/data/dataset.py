@@ -199,10 +199,17 @@ class Dataset(object):
         :param utterances: list of utterance ids
         """
         for utt_id in utterances:
-            del self.utterances[utt_id]
-            del self.transcriptions[utt_id]
-            del self.utt2spk[utt_id]
-            del self.transcriptions_raw[utt_id]
+            if utt_id in self.utterances.keys():
+                del self.utterances[utt_id]
+
+            if utt_id in self.transcriptions.keys():
+                del self.transcriptions[utt_id]
+
+            if utt_id in self.utt2spk.keys():
+                del self.utt2spk[utt_id]
+
+            if utt_id in self.transcriptions_raw.keys():
+                del self.transcriptions_raw[utt_id]
 
     def import_wavs(self, wavs, base_path=None, copy_files=False):
         """

@@ -17,6 +17,7 @@ class DatasetFixer(object):
         self.delete_empty_wavs()
         self.delete_wavs_with_wrong_format()
         self.delete_utterances_with_missing_wav()
+        self.delete_utt2spk_with_invalid_utt_id()
 
     def delete_wavs_with_missing_files(self):
         self.run_validation()
@@ -40,4 +41,10 @@ class DatasetFixer(object):
         self.run_validation()
 
         self.data.remove_utterances(self.validation.utterances_with_missing_wav_id)
+        self.data.save()
+
+    def delete_utt2spk_with_invalid_utt_id(self):
+        self.run_validation()
+
+        self.data.remove_utterances(self.validation.invalid_utt_ids_in_utt2spk)
         self.data.save()

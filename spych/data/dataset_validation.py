@@ -41,6 +41,7 @@ class DatasetValidation(object):
         self.check_for_missing_transcriptions()
         self.check_for_missing_speakers()
         self.check_for_missing_gender()
+        self.check_for_invalid_utt_ids_in_utt2spk()
 
     def check_for_missing_wav_files(self):
         """
