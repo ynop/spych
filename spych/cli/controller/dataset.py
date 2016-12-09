@@ -227,3 +227,37 @@ class DatasetExportController(controller.CementBaseController):
             print('Format {} not supported'.format(target_format))
 
         print('Done')
+
+
+class DatasetImportController(controller.CementBaseController):
+    class Meta:
+        label = 'import'
+        stacked_on = 'dataset'
+        stacked_type = 'nested'
+        description = "Import a dataset from another format to the spych format."
+
+        arguments = [
+            (['path'], dict(action='store', help='path to dataset to import the dataset to')),
+            (['out'], dict(action='store', help='path to dataset to import')),
+            (['format'], dict(action='store', help='format (kaldi)', choices=['kaldi'])),
+            (['--copy-wavs'], dict(action='store_true', help='Also copy the audio files to the out folder.'))
+        ]
+
+    @controller.expose(hide=True)
+    def default(self):
+        source_path = self.app.pargs.out
+        target_path = self.app.pargs.path
+        source_format = self.app.pargs.format
+
+        if source_format == 'kaldi':
+            print('Importing:')
+            print('Format: {}'.format(source_format))
+            print('From: {}'.format(source_path))
+            print('To: {}'.format(target_path))
+
+            importer = kaldi.KaldiConverter(target_path, source_path, copy_wavs=self.app.pargs.copy_wavs)
+            importer.run()
+        else:
+            print('Format {} not supported'.format(source_format))
+
+        print('Done')

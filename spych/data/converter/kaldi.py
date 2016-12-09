@@ -11,6 +11,68 @@ UTT2SPK_NAME = 'utt2spk'
 SPK2GENDER_NAME = 'spk2gender'
 
 
+class KaldiConverter(object):
+    def __init__(self, target_folder, source_folder, copy_wavs=True):
+        self.target_folder = target_folder
+        self.source_folder =source_folder
+        self.copy_wavs=copy_wavs
+        self.dataset = None
+
+    def run(self):
+        wav_file_path = os.path.join(self.source_folder, WAV_NAME)
+        segements_file_path = os.path.join(self.source_folder, SEGMENTS_NAME)
+        transcription_file_path = os.path.join(self.source_folder, TRANSCRIPTION_NAME)
+        utt2spk_file_path = os.path.join(self.source_folder, UTT2SPK_NAME)
+        spk2gender_file_path = os.path.join(self.source_folder, SPK2GENDER_NAME)
+
+        wavs_in=textfile.read_key_value_lines(wav_file_path, separator=' ')
+        utt2spk_in=textfile.read_key_value_lines(utt2spk_file_path, separator=' ')
+        spk2gender=textfile.read_key_value_lines(spk2gender_file_path, separator=' ')
+        transcriptions_in=textfile.read_key_value_lines(transcription_file_path, separator=' ')
+
+        wavs={}
+
+        for wav_id, wav_path in wavs_in.items():
+            wavs[wav_id] = os.path.abspath(os.path.join(self.source_folder, wav_path))
+
+        if os.path.exists(segements_file_path):
+            segements=textfile.read_separated_lines_with_first_key(segements_file_path, separator=' ')
+            utt2spk = utt2spk_in
+            transcriptions=transcriptions_in
+        else:
+            segements={}
+            utt2spk={}
+            transcriptions={}
+
+            for wav_id, wav_path in wavs.items():
+                spk_id = utt2spk_in[wav_id]
+                utt_id = '{}-{}'.format(spk_id, wav_id)
+                segements[utt_id] = [wav_id]
+                utt2spk[utt_id] = spk_id
+                transcriptions[utt_id] = transcriptions_in[wav_id]
+
+
+        spk_info={}
+
+        for spk_id, gender in spk2gender.items():
+            spk_info[spk_id] = {
+                dataset.SPEAKER_INFO_GENDER: gender
+            }
+
+
+        self.dataset = dataset.Dataset(dataset_folder=self.target_folder)
+        self.dataset.save()
+
+        wav_id_mapping = self.dataset.import_wavs(wavs, copy_files=self.copy_wavs)
+        utt_id_mapping = self.dataset.add_utterances(segements, wav_id_mapping=wav_id_mapping)
+        speaker_id_mapping = self.dataset.add_speaker_info(spk_info)
+        self.dataset.set_transcriptions(transcriptions, utt_id_mapping=utt_id_mapping)
+        self.dataset.set_utt2spk(utt2spk, utt_id_mapping=utt_id_mapping, speaker_id_mapping=speaker_id_mapping)
+
+        self.dataset.save()
+
+        return self.dataset
+
 class KaldiExporter(object):
     def __init__(self, target_folder, dataset, copy_wavs=False):
         self.target_folder = target_folder
