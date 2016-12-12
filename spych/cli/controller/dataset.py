@@ -4,6 +4,7 @@ from spych.data import dataset
 from spych.data import dataset_validation
 from spych.data import dataset_fixing
 from spych.data import dataset_split
+from spych.utils import textfile
 from spych.data.converter import kaldi
 
 
@@ -74,9 +75,11 @@ class DatasetSplitController(controller.CementBaseController):
         arguments = [
             (['path'], dict(action='store', help='path to dataset')),
             (['splits'], dict(action='store', nargs='+', help='Splits e.g. ../train=0.6 test=0.3 val=0.1')),
-            (['--split-by'], dict(action='store', help='By which entity it should be splitted (utterance, speaker)', choices=['utterance', 'speaker'], default='utterance')),
+            (['--split-by'], dict(action='store', help='By which entity it should be splitted (utterance, speaker)', choices=['utterance', 'speaker'],
+                                  default='utterance')),
             (['--copy-wavs'], dict(action='store_true', help='Also copy the audio files to the target dataset folder.')),
-            (['--speaker-separated'], dict(action='store_true', help='Only has effect when splitted by utterances, makes sure one speaker only occurs in one subset.'))
+            (['--speaker-separated'],
+             dict(action='store_true', help='Only has effect when splitted by utterances, makes sure one speaker only occurs in one subset.'))
         ]
 
     @controller.expose(hide=True)
@@ -93,7 +96,8 @@ class DatasetSplitController(controller.CementBaseController):
 
             split_by_speaker = self.app.pargs.split_by == 'speaker'
 
-            subsets=splitter.split(config, split_by_speakers=split_by_speaker, speaker_divided=self.app.pargs.speaker_separated, copy_wavs=self.app.pargs.copy_wavs)
+            subsets = splitter.split(config, split_by_speakers=split_by_speaker, speaker_divided=self.app.pargs.speaker_separated,
+                                     copy_wavs=self.app.pargs.copy_wavs)
 
             for subset in subsets:
                 print("{} : {}".format(subset.name(), len(subset.utterances)))
@@ -109,9 +113,12 @@ class DatasetSubsetController(controller.CementBaseController):
         arguments = [
             (['path'], dict(action='store', help='Path to the dataset, from which to create a subset.')),
             (['subset_path'], dict(action='store', help='Path to store the subset.')),
-            (['--filter'], dict(action='store', help='Filter to apply on the entity-id (Regex).')),
+            (['--filter'], dict(action='store', help='(Only for speaker-id, utt-id) Filter to apply on the entity-id (Regex).')),
+            (['--filter-list'], dict(action='store',
+                                     help='(Only for transcriptions) Path to filter file. Only entities in the filter list are used. One line one entity (e.g. transcription)')),
             (['--count'], dict(action='store', help='Max number of items of the entity to use for the subset.')),
-            (['--entity'], dict(action='store', help='Which entity to filter.', choices=['utterance-id', 'speaker-id'], default='utterance-id')),
+            (['--entity'], dict(action='store', help='Which entity to filter.', choices=['utterance-id', 'speaker-id', 'transcription'],
+                                default='utterance-id')),
             (['--copy-wavs'], dict(action='store_true', help='Also copy the audio files to the subset folder.'))
         ]
 
@@ -123,8 +130,11 @@ class DatasetSubsetController(controller.CementBaseController):
         subset_path = self.app.pargs.subset_path
         entity = self.app.pargs.entity
         filter_pattern = self.app.pargs.filter
+        filter_list = self.app.pargs.filter_list
+        filter_list_items = []
         count = self.app.pargs.count
         copy_wavs = self.app.pargs.copy_wavs
+        subset = None
 
         try:
             if count is None:
@@ -135,16 +145,41 @@ class DatasetSubsetController(controller.CementBaseController):
         except ValueError:
             count = -1
 
-        if filter_pattern is None:
-            if entity == 'utterance-id':
+        if filter_list is not None:
+            if entity != 'transcription':
+                print("--filter-list not supported for {}".format(entity))
+                return
+            else:
+                for record in textfile.read_separated_lines_generator(filter_list, separator='\n', max_columns=1):
+                    if len(record) > 0:
+                        filter_list_items.append(record[0])
+
+        if filter_pattern is not None:
+            if entity not in ['speaker-id', 'utterance-id']:
+                print("--filter not supported for {}".format(entity))
+                return
+
+        if entity == 'utterance-id':
+            if filter_pattern is None:
                 subset = splitter.create_subset_with_random_utterances(subset_path, count, copy_wavs=copy_wavs)
-            elif entity == 'speaker-id':
-                subset = splitter.create_subset_with_random_speakers(subset_path, count, copy_wavs=copy_wavs)
-        else:
-            if entity == 'utterance-id':
+            else:
                 subset = splitter.create_subset_with_filtered_utterances(subset_path, filter_pattern, max_items=count, copy_wavs=copy_wavs)
-            elif entity == 'speaker-id':
+
+        elif entity == 'speaker-id':
+            if filter_pattern is None:
+                subset = splitter.create_subset_with_random_speakers(subset_path, count, copy_wavs=copy_wavs)
+            else:
                 subset = splitter.create_subset_with_filtered_speakers(subset_path, filter_pattern, max_items=count, copy_wavs=copy_wavs)
+
+        elif entity == 'transcription':
+            if filter_list is None:
+                subset = splitter.create_subset_with_random_utterances(subset_path, count, copy_wavs=copy_wavs)
+            else:
+                subset = splitter.create_subset_with_filtered_transcriptions(subset_path, filter_list_items, count, copy_wavs=copy_wavs)
+
+        else:
+            print("unsupported entity {}".format(entity))
+            return
 
         if subset is not None:
             info_data = {
@@ -155,7 +190,7 @@ class DatasetSubsetController(controller.CementBaseController):
                 "num_speakers": len(subset.all_speakers())
             }
 
-            self.app.render(info_data, 'dataset_info.mustache')
+        self.app.render(info_data, 'dataset_info.mustache')
 
 
 class DatasetValidationController(controller.CementBaseController):

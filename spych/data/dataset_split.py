@@ -65,14 +65,16 @@ class DatasetSplitter(object):
         pattern = re.compile(utterance_filter)
 
         index = 0
+        count = 0
         utterance_ids = list(self.dataset.utterances.keys())
 
-        while index < len(utterance_ids) and (max_items == -1 or index < max_items):
+        while index < len(utterance_ids) and (max_items == -1 or count < max_items):
             utt_id = utterance_ids[index]
             match = pattern.fullmatch(utt_id)
 
             if match is not None:
                 matching_utt_ids.append(utt_id)
+                count += 1
 
             index += 1
 
@@ -94,14 +96,45 @@ class DatasetSplitter(object):
         pattern = re.compile(speaker_filter)
 
         index = 0
+        count = 0
         speaker_ids = list(self.dataset.all_speakers())
 
-        while index < len(speaker_ids) and (max_items == -1 or index < max_items):
+        while index < len(speaker_ids) and (max_items == -1 or count < max_items):
             speaker_id = speaker_ids[index]
             match = pattern.fullmatch(speaker_id)
 
             if match is not None:
                 matching_utt_ids.update(self.dataset.utterances_of_speaker(speaker_id))
+                count += 1
+
+            index += 1
+
+        subset = self.get_subset_with_utterances(path, matching_utt_ids, copy_wavs=copy_wavs)
+        return subset
+
+    def create_subset_with_filtered_transcriptions(self, path, passing_transcriptions, max_items=-1, copy_wavs=False):
+        """
+        Creates a subset with all utterances that have a transcription that is in the passing_transcriptions list.
+
+        :param path: Path to store the subset.
+        :param passing_transcriptions: List of transcriptions to filter.
+        :param max_items: max number of utterances.
+        :param copy_wavs: If True, copies the wav files to the subsets folder
+        :return: Subset
+        """
+        matching_utt_ids = set()
+
+        index = 0
+        count = 0
+        utterance_ids = list(self.dataset.transcriptions.keys())
+
+        while index < len(utterance_ids) and (max_items == -1 or count < max_items):
+            utt_id = utterance_ids[index]
+            transcription = self.dataset.transcriptions[utt_id]
+
+            if transcription in passing_transcriptions:
+                matching_utt_ids.add(utt_id)
+                count += 1
 
             index += 1
 

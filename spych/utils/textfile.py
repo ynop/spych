@@ -2,7 +2,6 @@ import os
 
 from spych.utils import text
 
-
 def read_separated_lines(path, separator=' ', max_columns=-1):
     """
     Reads a text file where each line represents a record with some separated columns.
