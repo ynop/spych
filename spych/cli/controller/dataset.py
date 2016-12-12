@@ -74,8 +74,9 @@ class DatasetSplitController(controller.CementBaseController):
         arguments = [
             (['path'], dict(action='store', help='path to dataset')),
             (['splits'], dict(action='store', nargs='+', help='Splits e.g. ../train=0.6 test=0.3 val=0.1')),
+            (['--split-by'], dict(action='store', help='By which entity it should be splitted (utterance, speaker)', choices=['utterance', 'speaker'], default='utterance')),
             (['--copy-wavs'], dict(action='store_true', help='Also copy the audio files to the target dataset folder.')),
-            (['--split-speakers'], dict(action='store_true', help='If given, a speaker occurs in only one subset.'))
+            (['--speaker-separated'], dict(action='store_true', help='Only has effect when splitted by utterances, makes sure one speaker only occurs in one subset.'))
         ]
 
     @controller.expose(hide=True)
@@ -90,7 +91,9 @@ class DatasetSplitController(controller.CementBaseController):
                 parts = split.split('=')
                 config[parts[0]] = float(parts[1])
 
-            subsets=splitter.split(config, split_speakers=self.app.pargs.split_speakers, copy_wavs=self.app.pargs.copy_wavs)
+            split_by_speaker = self.app.pargs.split_by == 'speaker'
+
+            subsets=splitter.split(config, split_by_speakers=split_by_speaker, speaker_divided=self.app.pargs.speaker_separated, copy_wavs=self.app.pargs.copy_wavs)
 
             for subset in subsets:
                 print("{} : {}".format(subset.name(), len(subset.utterances)))

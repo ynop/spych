@@ -1,6 +1,7 @@
 import random
 import copy
 import collections
+import operator
 import re
 
 from spych.data import dataset
@@ -11,7 +12,7 @@ class DatasetSplitter(object):
     def __init__(self, dataset):
         self.dataset = dataset
 
-    def split(self, subset_config={}, split_speakers=False, copy_wavs=False):
+    def split(self, subset_config={}, split_by_speakers=False, speaker_divided=False, copy_wavs=False):
         """
         Splits the dataset according to the given proportions. Proportions should sum to 1.0.
 
@@ -22,17 +23,21 @@ class DatasetSplitter(object):
         }
 
         :param subset_config: Configuration for splitting
-        :param split_speakers: If True looks that one speaker only occurs in one subset.
+        :param split_by_speakers: If True splits proportionally by speakers otherwise by utterances.
+        :param speaker_divided: Only when split_by_speakers=False, makes sure one speaker only occurs in one subset.
         :param copy_wavs: If True, copies the wav files to the subsets folder
         :return: dict subset/proportion
         """
 
         subsets = {}
 
-        if split_speakers:
+        if split_by_speakers:
             utterance_splits = self._get_utterances_splitted_by_speaker(subset_config)
         else:
-            utterance_splits = self._get_utterances_randomly_splitted(subset_config)
+            if speaker_divided:
+                utterance_splits = self._get_utterances_splitted_speaker_separated(subset_config)
+            else:
+                utterance_splits = self._get_utterances_randomly_splitted(subset_config)
 
         total_utterances = 0
 
@@ -193,9 +198,63 @@ class DatasetSplitter(object):
 
         return subset
 
+    # def _get_utterances_splitted_by_speaker(self, subset_config={}):
+    #     """
+    #     Get utterances splitted by speakers. First prio is to split speakers by the given proportions.
+    #     Afterwards trying to split so that nr utterances are distributed according the given proportions.
+    #
+    #     :param subset_config: Proportions
+    #     :return: dict path:[list of utterances]
+    #     """
+    #
+    #     spk2utt = self.dataset.get_speaker_to_utterances()
+    #
+    #     if len(spk2utt) < len(subset_config):
+    #         raise ValueError("There are not enough speakers ({}) to split into {} subsets.".format(len(spk2utt), len(subset_config)))
+    #
+    #     spk2utt_count = {speaker_id: len(utterances) for speaker_id, utterances in spk2utt.items()}
+    #     spk2utt_count_sorted = collections.OrderedDict(sorted(spk2utt_count.items(), key=operator.itemgetter(1), reverse=True))
+    #
+    #     proportions = math.calculate_absolute_proportions(len(spk2utt), subset_config)
+    #
+    #     spk_id_splits = collections.defaultdict(list)
+    #
+    #     for spk_id, utt_count in spk2utt_count_sorted.items():
+
     def _get_utterances_splitted_by_speaker(self, subset_config={}):
         """
-        Get utterances splitted by speakers, trying to split with the given proportions.
+        Get utterances splitted by speakers. First prio is to split speakers by the given proportions.
+
+        :param subset_config: Proportions
+        :return: dict path:[list of utterances]
+        """
+
+        spk2utt = self.dataset.get_speaker_to_utterances()
+
+        if len(spk2utt) < len(subset_config):
+            raise ValueError("There are not enough speakers ({}) to split into {} subsets.".format(len(spk2utt), len(subset_config)))
+
+        proportions = math.calculate_absolute_proportions(len(spk2utt), subset_config)
+
+        speakers = list(spk2utt.keys())
+        random.shuffle(speakers)
+
+        utterance_id_splits = collections.defaultdict(list)
+        start_index = 0
+
+        for path, proportion in proportions.items():
+            selected_speakers = speakers[start_index:start_index + proportion]
+
+            for speaker in selected_speakers:
+                utterance_id_splits[path].extend(spk2utt[speaker])
+
+            start_index += proportion
+
+        return utterance_id_splits
+
+    def _get_utterances_splitted_speaker_separated(self, subset_config={}):
+        """
+        Get utterances splitted, trying to split with the given proportions so that one speaker only appears in one subset.
 
         :param subset_config: Proportions
         :return: dict path:[list of utterances]
