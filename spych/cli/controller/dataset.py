@@ -116,6 +116,8 @@ class DatasetSubsetController(controller.CementBaseController):
             (['--filter'], dict(action='store', help='(Only for speaker-id, utt-id) Filter to apply on the entity-id (Regex).')),
             (['--filter-list'], dict(action='store',
                                      help='(Only for transcriptions) Path to filter file. Only entities in the filter list are used. One line one entity (e.g. transcription)')),
+            (['--filter-inverse'],
+             dict(action='store_true', help='If not set items that match the filter are used, if set items that do not match are used.')),
             (['--count'], dict(action='store', help='Max number of items of the entity to use for the subset.')),
             (['--entity'], dict(action='store', help='Which entity to filter.', choices=['utterance-id', 'speaker-id', 'transcription'],
                                 default='utterance-id')),
@@ -134,6 +136,7 @@ class DatasetSubsetController(controller.CementBaseController):
         filter_list_items = []
         count = self.app.pargs.count
         copy_wavs = self.app.pargs.copy_wavs
+        inverse = self.app.pargs.filter_inverse
         subset = None
 
         try:
@@ -163,20 +166,22 @@ class DatasetSubsetController(controller.CementBaseController):
             if filter_pattern is None:
                 subset = splitter.create_subset_with_random_utterances(subset_path, count, copy_wavs=copy_wavs)
             else:
-                subset = splitter.create_subset_with_filtered_utterances(subset_path, filter_pattern, max_items=count, copy_wavs=copy_wavs)
+                subset = splitter.create_subset_with_filtered_utterances(subset_path, filter_pattern, max_items=count, inverse=inverse,
+                                                                         copy_wavs=copy_wavs)
 
         elif entity == 'speaker-id':
             if filter_pattern is None:
                 subset = splitter.create_subset_with_random_speakers(subset_path, count, copy_wavs=copy_wavs)
             else:
-                subset = splitter.create_subset_with_filtered_speakers(subset_path, filter_pattern, max_items=count, copy_wavs=copy_wavs)
+                subset = splitter.create_subset_with_filtered_speakers(subset_path, filter_pattern, max_items=count, inverse=inverse,
+                                                                       copy_wavs=copy_wavs)
 
         elif entity == 'transcription':
             if filter_list is None:
                 subset = splitter.create_subset_with_random_utterances(subset_path, count, copy_wavs=copy_wavs)
             else:
-                subset = splitter.create_subset_with_filtered_transcriptions(subset_path, filter_list_items, count, copy_wavs=copy_wavs)
-
+                subset = splitter.create_subset_with_filtered_transcriptions(subset_path, filter_list_items, max_items=count, inverse=inverse,
+                                                                             copy_wavs=copy_wavs)
         else:
             print("unsupported entity {}".format(entity))
             return
@@ -342,7 +347,8 @@ class DatasetShowController(controller.CementBaseController):
 
         arguments = [
             (['path'], dict(action='store', help='path to dataset to import the dataset to')),
-            (['entity'], dict(action='store', help='Entries of which entity to show (transcriptions, speakers)', choices=['transcription', 'speaker-id']))
+            (['entity'],
+             dict(action='store', help='Entries of which entity to show (transcriptions, speakers)', choices=['transcription', 'speaker-id']))
         ]
 
     @controller.expose(hide=True)

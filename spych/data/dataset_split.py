@@ -50,13 +50,14 @@ class DatasetSplitter(object):
 
         return subsets
 
-    def create_subset_with_filtered_utterances(self, path, utterance_filter, max_items=-1, copy_wavs=False):
+    def create_subset_with_filtered_utterances(self, path, utterance_filter, max_items=-1, inverse=False, copy_wavs=False):
         """
         Creates a subset with all utterances matching the given filter.
 
         :param path: Path to store the subset.
         :param utterance_filter: Filter (Regex)
         :param max_items: max number of utterances
+        :param inverse: If True returns utterances that do not match filter.
         :param copy_wavs: If True, copies the wav files to the subsets folder
         :return: Subset
         """
@@ -72,7 +73,7 @@ class DatasetSplitter(object):
             utt_id = utterance_ids[index]
             match = pattern.fullmatch(utt_id)
 
-            if match is not None:
+            if (match is not None and not inverse) or (match is None and inverse):
                 matching_utt_ids.append(utt_id)
                 count += 1
 
@@ -81,13 +82,14 @@ class DatasetSplitter(object):
         subset = self.get_subset_with_utterances(path, matching_utt_ids, copy_wavs=copy_wavs)
         return subset
 
-    def create_subset_with_filtered_speakers(self, path, speaker_filter, max_items=-1, copy_wavs=False):
+    def create_subset_with_filtered_speakers(self, path, speaker_filter, max_items=-1, inverse=False, copy_wavs=False):
         """
         Creates a subset with all speakers matching the given filter.
 
         :param path: Path to store the subset.
         :param speaker_filter: Filter (Regex)
         :param max_items: max number of speakers
+        :param inverse: If True returns speakers that do not match filter.
         :param copy_wavs: If True, copies the wav files to the subsets folder
         :return: Subset
         """
@@ -103,7 +105,7 @@ class DatasetSplitter(object):
             speaker_id = speaker_ids[index]
             match = pattern.fullmatch(speaker_id)
 
-            if match is not None:
+            if (match is not None and not inverse) or (match is None and inverse):
                 matching_utt_ids.update(self.dataset.utterances_of_speaker(speaker_id))
                 count += 1
 
@@ -112,13 +114,14 @@ class DatasetSplitter(object):
         subset = self.get_subset_with_utterances(path, matching_utt_ids, copy_wavs=copy_wavs)
         return subset
 
-    def create_subset_with_filtered_transcriptions(self, path, passing_transcriptions, max_items=-1, copy_wavs=False):
+    def create_subset_with_filtered_transcriptions(self, path, passing_transcriptions, max_items=-1, inverse=False, copy_wavs=False):
         """
         Creates a subset with all utterances that have a transcription that is in the passing_transcriptions list.
 
         :param path: Path to store the subset.
         :param passing_transcriptions: List of transcriptions to filter.
         :param max_items: max number of utterances.
+        :param inverse: if True, transcriptions that are not in the passing_transcriptions list are returned.
         :param copy_wavs: If True, copies the wav files to the subsets folder
         :return: Subset
         """
@@ -132,7 +135,7 @@ class DatasetSplitter(object):
             utt_id = utterance_ids[index]
             transcription = self.dataset.transcriptions[utt_id]
 
-            if transcription in passing_transcriptions:
+            if (transcription in passing_transcriptions and not inverse) or (transcription not in passing_transcriptions and inverse):
                 matching_utt_ids.add(utt_id)
                 count += 1
 
