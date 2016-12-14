@@ -26,6 +26,7 @@ def synthesize_sentence_corpus_and_create_datasets_with_configs(corpus_path, con
     :param corpus_path: Path to sentence corpus.
     :param config_path: Path to file with configurations
     :param target_folder: Path to store the datasets
+    :param corpus_clean_path: Path to cleaned sentence corpus.
     """
 
     configurations = jsonfile.read_json_file(config_path)

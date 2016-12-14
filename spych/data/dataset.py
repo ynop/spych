@@ -81,6 +81,14 @@ class Dataset(object):
         """
         return set(self.utt2spk.values())
 
+    def all_transcriptions(self):
+        """
+        Get set of all occuring transcriptions.
+
+        :return: Set
+        """
+        return set(self.transcriptions.values())
+
     def utterances_of_wav(self, wav_id):
         """
         Returns all utterances that are in the given wav.

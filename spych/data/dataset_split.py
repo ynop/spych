@@ -68,7 +68,7 @@ class DatasetSplitter(object):
         count = 0
         utterance_ids = list(self.dataset.utterances.keys())
 
-        while index < len(utterance_ids) and (max_items == -1 or count < max_items):
+        while index < len(utterance_ids) and (max_items == -1 or count <= max_items):
             utt_id = utterance_ids[index]
             match = pattern.fullmatch(utt_id)
 
@@ -99,7 +99,7 @@ class DatasetSplitter(object):
         count = 0
         speaker_ids = list(self.dataset.all_speakers())
 
-        while index < len(speaker_ids) and (max_items == -1 or count < max_items):
+        while index < len(speaker_ids) and (max_items == -1 or count <= max_items):
             speaker_id = speaker_ids[index]
             match = pattern.fullmatch(speaker_id)
 
@@ -128,7 +128,7 @@ class DatasetSplitter(object):
         count = 0
         utterance_ids = list(self.dataset.transcriptions.keys())
 
-        while index < len(utterance_ids) and (max_items == -1 or count < max_items):
+        while index < len(utterance_ids) and (max_items == -1 or count <= max_items):
             utt_id = utterance_ids[index]
             transcription = self.dataset.transcriptions[utt_id]
 

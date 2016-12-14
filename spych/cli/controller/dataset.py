@@ -331,3 +331,30 @@ class DatasetImportController(controller.CementBaseController):
             print('Format {} not supported'.format(source_format))
 
         print('Done')
+
+
+class DatasetShowController(controller.CementBaseController):
+    class Meta:
+        label = 'show'
+        stacked_on = 'dataset'
+        stacked_type = 'nested'
+        description = "Print data from the dataset."
+
+        arguments = [
+            (['path'], dict(action='store', help='path to dataset to import the dataset to')),
+            (['entity'], dict(action='store', help='Entries of which entity to show (transcriptions, speakers)', choices=['transcription', 'speaker-id']))
+        ]
+
+    @controller.expose(hide=True)
+    def default(self):
+        source_path = self.app.pargs.path
+        entity = self.app.pargs.entity
+
+        dset = dataset.Dataset.load_from_path(source_path)
+
+        if entity == 'transcription':
+            for transcription in sorted(dset.all_transcriptions()):
+                print(transcription)
+        elif entity == 'speaker-id':
+            for speaker_id in sorted(dset.all_speakers()):
+                print(speaker_id)
