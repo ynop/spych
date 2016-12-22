@@ -1,14 +1,24 @@
 import re
 
 
-def remove_punctuation(text):
+def remove_punctuation(text, exceptions=[]):
     """
     Removes the punctuation from a string.
 
     :param text: Text
     :return: Text without punctuation.
     """
-    return re.sub(r'[^\w\s]', '', text)
+
+    all_but = [
+        '\w',
+        '\s'
+    ]
+
+    all_but.extend(exceptions)
+
+    pattern = '[^{}]'.format(''.join(all_but))
+
+    return re.sub(pattern, '', text)
 
 
 def starts_with_prefix_in_list(text, prefixes):

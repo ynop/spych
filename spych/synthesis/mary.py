@@ -22,5 +22,5 @@ class MarySynthesizer(synthesizer.Synthesizer):
 
         self.maryClient = marytts.MaryClient(host=host, port=port)
 
-    def synthesize_text(self, text, path):
-        self.maryClient.synthesize(text, path, voice=self._config.voice, locale=self._config.locale, effects=self._config.effects)
+    def synthesize_text(self, text, path, voice=None, effects={}):
+        self.maryClient.synthesize(text, path, voice=voice, locale=self._config.locale, effects=effects)
