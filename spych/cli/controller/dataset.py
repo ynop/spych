@@ -364,3 +364,38 @@ class DatasetShowController(controller.CementBaseController):
         elif entity == 'speaker-id':
             for speaker_id in sorted(dset.all_speakers()):
                 print(speaker_id)
+
+
+class DatasetEffectController(controller.CementBaseController):
+    class Meta:
+        label = 'effect'
+        stacked_on = 'dataset'
+        stacked_type = 'nested'
+        description = "Create a copy of the dataset with some effects applied."
+
+        arguments = [
+            (['input_path'], dict(action='store', help='Path to dataset to copy.')),
+            (['output_path'], dict(action='store', help='Path to store the dataset with the applied effects.')),
+            (['--snr'], dict(action='store', help='Signal-to-Noise ratio to use for noise addition.'))
+        ]
+
+    @controller.expose(hide=True)
+    def default(self):
+        self.app.args.print_help()
+
+    @controller.expose(help="Add random noise to the wavs.", aliases_only=["add-random-noise"])
+    def add_random_noise(self):
+        input_path = self.app.pargs.input_path
+        output_path = self.app.pargs.output_path
+        snr = None
+
+        if self.app.pargs.snr:
+            snr = float(self.app.pargs.snr)
+
+        input_set = dataset.Dataset.load_from_path(input_path)
+        output_set = dataset.Dataset(output_path)
+        output_set.save()
+
+        output_set.merge_dataset(input_set, copy_wavs=True)
+        output_set.add_random_noise(snr=snr)
+        output_set.save()

@@ -170,8 +170,6 @@ class Synthesizer(object):
         sentences = textfile.read_key_value_lines(corpus_path, separator='\t')
         sentences_cleaned = {}
 
-        speaker_id = str(uuid.uuid1())
-
         wavs = {}
         utterances = {}
         transcriptions = {}
