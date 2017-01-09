@@ -5,6 +5,7 @@ import collections
 from spych.utils import textfile
 from spych.utils import jsonfile
 from spych.utils import naming
+from spych.audio import signal
 
 WAV_FILE_NAME = 'wavs.txt'
 SEGMENTS_FILE_NAME = 'utterances.txt'
@@ -360,6 +361,12 @@ class Dataset(object):
         self.set_transcriptions(dataset.transcriptions, utt_id_mapping=utt_id_mapping)
         self.set_utt2spk(dataset.utt2spk, utt_id_mapping=utt_id_mapping, speaker_id_mapping=speaker_id_mapping)
         self.set_transcriptions_raw(dataset.transcriptions_raw, utt_id_mapping=utt_id_mapping)
+
+    def add_random_noise(self, snr=None):
+        for wav_path in self.wavs.values():
+            full_path = os.path.join(self.path, wav_path)
+            print(full_path)
+            signal.add_random_noise_to_wav(full_path, full_path, snr=snr)
 
     #
     #   READ / WRITE
