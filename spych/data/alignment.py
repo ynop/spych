@@ -1,5 +1,0 @@
-
-
-
-class Alignment(object):
-    pass

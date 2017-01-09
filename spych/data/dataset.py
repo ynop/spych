@@ -363,6 +363,11 @@ class Dataset(object):
         self.set_transcriptions_raw(dataset.transcriptions_raw, utt_id_mapping=utt_id_mapping)
 
     def add_random_noise(self, snr=None):
+        """
+        Adds generated noise to all wavs in the dataset with the given SNR.
+
+        :param snr: Signal-to-Noise-Ratio [dB]
+        """
         for wav_path in self.wavs.values():
             full_path = os.path.join(self.path, wav_path)
             print(full_path)
