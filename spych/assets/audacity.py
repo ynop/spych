@@ -19,3 +19,13 @@ def write_label_file(path, entries):
     """
 
     textfile.write_separated_lines(path, entries, separator=' ')
+
+
+def read_label_file(path):
+    """
+    Reads the labels from an audacity label file.
+
+    :param path: Path to the label file.
+    :return: List of labels (start [sec], end [sec], label)
+    """
+    return textfile.read_separated_lines(path, separator='\t', max_columns=3)
