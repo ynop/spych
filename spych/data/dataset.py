@@ -1,6 +1,7 @@
 import os
 import shutil
 import collections
+import random
 
 from spych.utils import textfile
 from spych.utils import jsonfile
@@ -362,16 +363,21 @@ class Dataset(object):
         self.set_utt2spk(dataset.utt2spk, utt_id_mapping=utt_id_mapping, speaker_id_mapping=speaker_id_mapping)
         self.set_transcriptions_raw(dataset.transcriptions_raw, utt_id_mapping=utt_id_mapping)
 
-    def add_random_noise(self, snr=None):
+    def add_random_noise(self, snr=None, snr_range=None):
         """
         Adds generated noise to all wavs in the dataset with the given SNR.
 
         :param snr: Signal-to-Noise-Ratio [dB]
+        :param snr_range: Uses a random Signal-to-Noise-Ratio [dB] in the given range (start,end)
         """
         for wav_path in self.wavs.values():
+            used_snr = snr
+
+            if snr_range is not None:
+                used_snr = random.randint(snr_range[0], snr_range[1])
+
             full_path = os.path.join(self.path, wav_path)
-            print(full_path)
-            signal.add_random_noise_to_wav(full_path, full_path, snr=snr)
+            signal.add_random_noise_to_wav(full_path, full_path, snr=used_snr)
 
     #
     #   READ / WRITE

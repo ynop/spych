@@ -376,7 +376,8 @@ class DatasetEffectController(controller.CementBaseController):
         arguments = [
             (['input_path'], dict(action='store', help='Path to dataset to copy.')),
             (['output_path'], dict(action='store', help='Path to store the dataset with the applied effects.')),
-            (['--snr'], dict(action='store', help='Signal-to-Noise ratio to use for noise addition.'))
+            (['--snr'], dict(action='store', help='Signal-to-Noise ratio to use for noise addition.')),
+            (['--snr-range'], dict(action='store', help='Uses for each wav a random SNR in the given range. (3-5)'))
         ]
 
     @controller.expose(hide=True)
@@ -388,14 +389,19 @@ class DatasetEffectController(controller.CementBaseController):
         input_path = self.app.pargs.input_path
         output_path = self.app.pargs.output_path
         snr = None
+        snr_range = None
 
         if self.app.pargs.snr:
             snr = float(self.app.pargs.snr)
+
+        if self.app.pargs.snr_range:
+            splitted = self.app.pargs.snr_range.split('-')
+            snr_range = (int(splitted[0]), int(splitted[1]))
 
         input_set = dataset.Dataset.load_from_path(input_path)
         output_set = dataset.Dataset(output_path)
         output_set.save()
 
         output_set.merge_dataset(input_set, copy_wavs=True)
-        output_set.add_random_noise(snr=snr)
+        output_set.add_random_noise(snr=snr, snr_range=snr_range)
         output_set.save()
