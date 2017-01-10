@@ -28,4 +28,9 @@ def read_label_file(path):
     :param path: Path to the label file.
     :return: List of labels (start [sec], end [sec], label)
     """
-    return textfile.read_separated_lines(path, separator='\t', max_columns=3)
+    labels = []
+
+    for record in textfile.read_separated_lines_generator(path, separator='\t', max_columns=3):
+        labels.append([float(record[0]), float(record[1]), str(record[2])])
+
+    return labels

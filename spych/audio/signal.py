@@ -105,3 +105,79 @@ def add_random_noise_to_wav(wav_path, output_path, snr=None):
     sampling_rate, samples = scipy.io.wavfile.read(wav_path)
     new_samples = add_random_noise_to_signal(samples, snr=snr)
     scipy.io.wavfile.write(output_path, sampling_rate, new_samples)
+
+
+def get_sample_index_from_seconds(seconds, sampling_rate):
+    """
+    Get sample index with time in seconds.
+
+    :param seconds: Time to convert to sample index.
+    :param sampling_rate: Sampling rate
+    :return: Sample index
+    """
+    return int(seconds * sampling_rate)
+
+
+def calculate_snr(signal, noise):
+    """
+    Calculate SNR between signal and noise samples.
+
+    :param signal: Signal
+    :param noise: Noise
+    :return: Signal-To-Noise Ratio [dB]
+    """
+    signal_energy = calculate_energy_of_samples(signal)
+    noise_energy = calculate_energy_of_samples(noise)
+
+    return 10 * np.log10(signal_energy / noise_energy)
+
+
+def estimate_snr_with_labels(signal, sampling_rate, labels):
+    """
+    Estimate SNR of signal with labels. If label is one of ('speech', 'signal') it is considered as signal otherwise as noise.
+
+    :param signal: Samples
+    :param sampling_rate: Sampling rate
+    :param labels: Labels (start [sec], end [sec], label)
+    :return:
+    """
+    signal_labels = []
+
+    for label in labels:
+        signal_labels.append([
+            get_sample_index_from_seconds(label[0], sampling_rate),
+            get_sample_index_from_seconds(label[1], sampling_rate),
+            label[2]
+        ])
+
+    noise_sample_chunks = []
+    signal_sample_chunks = []
+
+    sample_index = 0
+    label_index = 0
+
+    while sample_index < signal.size:
+
+        if label_index < len(signal_labels):
+            next_label = signal_labels[label_index]
+
+            if sample_index == next_label[0]:
+                chunk = signal[next_label[0]:next_label[1] + 1]
+                if next_label[2] in ['speech', 'signal']:
+                    signal_sample_chunks.append(chunk)
+                else:
+                    noise_sample_chunks.append(chunk)
+
+                sample_index = next_label[1] + 1
+                label_index += 1
+            else:
+                noise_sample_chunks.append(signal[sample_index:next_label[0]])
+                sample_index = next_label[0]
+        else:
+            noise_sample_chunks.append(signal[sample_index:signal.size])
+            sample_index = signal.size
+
+    noise_samples = np.concatenate(noise_sample_chunks)
+    signal_samples = np.concatenate(signal_sample_chunks)
+
+    return calculate_snr(signal_samples, noise_samples)

@@ -24,7 +24,8 @@ class SpychApp(foundation.CementApp):
             dataset.DatasetEffectController,
             lexicon.LexiconController,
             synthesis.SynthesisController,
-            wav.WavController
+            wav.WavController,
+            wav.SNRController
         ]
 
         extensions = ['mustache']

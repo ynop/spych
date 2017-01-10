@@ -1,6 +1,9 @@
 from cement.core import controller
 
+import scipy.io.wavfile
+
 from spych.audio import signal
+from spych.assets import audacity
 
 
 class WavController(controller.CementBaseController):
@@ -30,3 +33,42 @@ class WavController(controller.CementBaseController):
             snr = float(self.app.pargs.snr)
 
         signal.add_random_noise_to_wav(input_path, output_path, snr=snr)
+
+
+class SNRController(controller.CementBaseController):
+    class Meta:
+        label = 'snr'
+        stacked_on = 'wav'
+        stacked_type = 'nested'
+        description = "Calculate Signal-to-Noise-Ratio"
+
+        arguments = [
+            (['signal_path'], dict(action='store', help='Path to wav with signal.')),
+            (['--label_path'], dict(action='store', help='Path to audacity label file.')),
+            (['--noise_path'], dict(action='store', help='Path to wav with noise.'))
+        ]
+
+    @controller.expose(hide=True)
+    def default(self):
+        signal_path = self.app.pargs.signal_path
+        label_path = None
+        noise_path = None
+
+        if self.app.pargs.label_path:
+            label_path = self.app.pargs.label_path
+
+        if self.app.pargs.noise_path:
+            noise_path = self.app.pargs.noise_path
+
+        if label_path is not None:
+            sampling_rate, samples = scipy.io.wavfile.read(signal_path)
+            labels = audacity.read_label_file(label_path)
+            snr = signal.estimate_snr_with_labels(samples, sampling_rate, labels)
+            print("SNR : {}".format(snr))
+        elif noise_path is not None:
+            signal_sampling_rate, signal_samples = scipy.io.wavfile.read(signal_path)
+            noise_sampling_rate, noise_samples = scipy.io.wavfile.read(noise_path)
+            snr = signal.calculate_snr(signal_samples, noise_samples)
+            print("SNR : {}".format(snr))
+        else:
+            print("You have to provide a label or a noise file.")
