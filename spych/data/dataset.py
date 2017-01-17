@@ -254,6 +254,17 @@ class Dataset(object):
 
         return wav_id_map
 
+    def set_wav_path(self, path):
+        """
+        Sets the given path for all wav files. Removes old path if exists.
+
+        :param path: Path to set
+        """
+        for wav_id in self.wavs.keys():
+            old_path = self.wavs[wav_id]
+            wav_file_name = os.path.basename(old_path)
+            self.wavs[wav_id] = os.path.join(path, wav_file_name)
+
     def add_utterances(self, utterances, wav_id_mapping=None):
         """
         Adds the given utterances to the dataset.

@@ -16,8 +16,8 @@ class DatasetController(controller.CementBaseController):
         description = "Working with datasets."
 
         arguments = [
-            (['path'],
-             dict(action='store', help='path to dataset'))
+            (['path'], dict(action='store', help='path to dataset')),
+            (['--wav-path'], dict(action='store', help='Wav path to set with the command set-wav-path.'))
         ]
 
     @controller.expose(hide=True)
@@ -42,6 +42,15 @@ class DatasetController(controller.CementBaseController):
     def new(self):
         dset = dataset.Dataset(self.app.pargs.path)
         dset.save()
+
+    @controller.expose(help="Set wav path of all wavs.", aliases_only=['set-wav-path'])
+    def set_wav_path(self):
+        if self.app.pargs.wav_path:
+            dset = dataset.Dataset.load_from_path(self.app.pargs.path)
+            dset.set_wav_path(self.app.pargs.wav_path)
+            dset.save()
+        else:
+            print("No wav path given.")
 
 
 class DatasetMergeController(controller.CementBaseController):
