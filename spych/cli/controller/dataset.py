@@ -384,7 +384,8 @@ class DatasetModifyController(controller.CementBaseController):
 
         arguments = [
             (['input_path'], dict(action='store', help='Path to dataset to copy.')),
-            (['output_path'], dict(action='store', help='Path to store the dataset with the applied effects.')),
+            (['--as-copy-in-path'], dict(action='store', help='Path to copy the dataset to and apply the modifications to the copy.')),
+            (['--copy-wavs'], dict(action='store_true', help='Also copy the audio files to the out folder (Only if --as-copy-in-path is set).')),
             (['--divide-speakers'], dict(action='store', help='Divide dataset into the given number of speakers (> current number of speakers).')),
             (['--add-noise-with-snr'], dict(action='store', help='Signal-to-Noise ratio to use for noise addition.')),
             (['--add-noise-with-snr-range'], dict(action='store', help='Uses for each wav a random SNR in the given range. (3-5)'))
@@ -393,24 +394,28 @@ class DatasetModifyController(controller.CementBaseController):
     @controller.expose(hide=True)
     def default(self):
         input_path = self.app.pargs.input_path
-        output_path = self.app.pargs.output_path
+        target_data_set = None
 
         input_set = dataset.Dataset.load_from_path(input_path)
-        output_set = dataset.Dataset(output_path)
-        output_set.save()
-        output_set.merge_dataset(input_set, copy_wavs=True)
+
+        if self.app.pargs.as_copy_in_path is not None:
+            target_data_set = dataset.Dataset(self.app.pargs.as_copy_in_path)
+            target_data_set.save()
+            target_data_set.merge_dataset(input_set, copy_wavs=self.app.pargs.copy_wavs)
+        else:
+            target_data_set = input_set
 
         if self.app.pargs.add_noise_with_snr is not None:
             snr = float(self.app.pargs.add_noise_with_snr)
-            output_set.add_random_noise(snr=snr)
+            target_data_set.add_random_noise(snr=snr)
 
         if self.app.pargs.add_noise_with_snr_range is not None:
             splitted = self.app.pargs.add_noise_with_snr_range.split('-')
             snr_range = (int(splitted[0]), int(splitted[1]))
-            output_set.add_random_noise(snr_range=snr_range)
+            target_data_set.add_random_noise(snr_range=snr_range)
 
         if self.app.pargs.divide_speakers is not None:
             num_speakers = int(self.app.pargs.divide_speakers)
-            output_set.divide_speakers(num_speakers)
+            target_data_set.divide_speakers(num_speakers)
 
-        output_set.save()
+        target_data_set.save()
