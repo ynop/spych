@@ -375,42 +375,42 @@ class DatasetShowController(controller.CementBaseController):
                 print(speaker_id)
 
 
-class DatasetEffectController(controller.CementBaseController):
+class DatasetModifyController(controller.CementBaseController):
     class Meta:
-        label = 'effect'
+        label = 'modify'
         stacked_on = 'dataset'
         stacked_type = 'nested'
-        description = "Create a copy of the dataset with some effects applied."
+        description = "Create a copy of the dataset with some effects/modifications applied."
 
         arguments = [
             (['input_path'], dict(action='store', help='Path to dataset to copy.')),
             (['output_path'], dict(action='store', help='Path to store the dataset with the applied effects.')),
-            (['--snr'], dict(action='store', help='Signal-to-Noise ratio to use for noise addition.')),
-            (['--snr-range'], dict(action='store', help='Uses for each wav a random SNR in the given range. (3-5)'))
+            (['--divide-speakers'], dict(action='store', help='Divide dataset into the given number of speakers (> current number of speakers).')),
+            (['--add-noise-with-snr'], dict(action='store', help='Signal-to-Noise ratio to use for noise addition.')),
+            (['--add-noise-with-snr-range'], dict(action='store', help='Uses for each wav a random SNR in the given range. (3-5)'))
         ]
 
     @controller.expose(hide=True)
     def default(self):
-        self.app.args.print_help()
-
-    @controller.expose(help="Add random noise to the wavs.", aliases_only=["add-random-noise"])
-    def add_random_noise(self):
         input_path = self.app.pargs.input_path
         output_path = self.app.pargs.output_path
-        snr = None
-        snr_range = None
-
-        if self.app.pargs.snr:
-            snr = float(self.app.pargs.snr)
-
-        if self.app.pargs.snr_range:
-            splitted = self.app.pargs.snr_range.split('-')
-            snr_range = (int(splitted[0]), int(splitted[1]))
 
         input_set = dataset.Dataset.load_from_path(input_path)
         output_set = dataset.Dataset(output_path)
         output_set.save()
-
         output_set.merge_dataset(input_set, copy_wavs=True)
-        output_set.add_random_noise(snr=snr, snr_range=snr_range)
+
+        if self.app.pargs.add_noise_with_snr is not None:
+            snr = float(self.app.pargs.add_noise_with_snr)
+            output_set.add_random_noise(snr=snr)
+
+        if self.app.pargs.add_noise_with_snr_range is not None:
+            splitted = self.app.pargs.add_noise_with_snr_range.split('-')
+            snr_range = (int(splitted[0]), int(splitted[1]))
+            output_set.add_random_noise(snr_range=snr_range)
+
+        if self.app.pargs.divide_speakers is not None:
+            num_speakers = int(self.app.pargs.divide_speakers)
+            output_set.divide_speakers(num_speakers)
+
         output_set.save()

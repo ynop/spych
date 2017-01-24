@@ -1,7 +1,6 @@
 import random
 import copy
 import collections
-import operator
 import re
 
 from spych.data import dataset

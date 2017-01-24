@@ -16,14 +16,15 @@ class WavController(controller.CementBaseController):
         arguments = [
             (['input_path'], dict(action='store', help='Path to the wav file to modify.')),
             (['output_path'], dict(action='store', help='Path to store the modified wav.')),
-            (['--snr'], dict(action='store', help='Signal-to-Noise ratio to use for noise addition.'))
+            (['--snr'], dict(action='store', help='Signal-to-Noise ratio to use for noise addition.')),
+            (['--noise_path'], dict(action='store', help='Path to noise file.'))
         ]
 
     @controller.expose(hide=True)
     def default(self):
         self.app.args.print_help()
 
-    @controller.expose(help="Print information about a given lexicon.", aliases_only=["add-random-noise"])
+    @controller.expose(help="Adds random generated noise to the signal.", aliases_only=["add-random-noise"])
     def add_random_noise(self):
         input_path = self.app.pargs.input_path
         output_path = self.app.pargs.output_path
@@ -33,6 +34,19 @@ class WavController(controller.CementBaseController):
             snr = float(self.app.pargs.snr)
 
         signal.add_random_noise_to_wav(input_path, output_path, snr=snr)
+
+    @controller.expose(help="Adds the given noise to the signal.", aliases_only=["add-noise"])
+    def add_noise(self):
+        input_path = self.app.pargs.input_path
+        output_path = self.app.pargs.output_path
+        snr = None
+        noise_path = self.app.pargs.noise_path
+
+        if noise_path is not None:
+            if self.app.pargs.snr:
+                snr = float(self.app.pargs.snr)
+
+            signal.add_noise_to_wav(input_path, noise_path, output_path, snr=snr)
 
 
 class SNRController(controller.CementBaseController):

@@ -21,7 +21,7 @@ class SpychApp(foundation.CementApp):
             dataset.DatasetSubsetController,
             dataset.DatasetSplitController,
             dataset.DatasetShowController,
-            dataset.DatasetEffectController,
+            dataset.DatasetModifyController,
             lexicon.LexiconController,
             synthesis.SynthesisController,
             wav.WavController,

@@ -390,6 +390,92 @@ class Dataset(object):
             full_path = os.path.join(self.path, wav_path)
             signal.add_random_noise_to_wav(full_path, full_path, snr=used_snr)
 
+    def divide_speakers(self, target_number_of_speakers):
+        """
+        Divide the available speakers in the dataset into different speakers so the number of speakers is target_number_of_speakers.
+
+        :param target_number_of_speakers: Target number of speakers
+        """
+
+        spk2utt = self.get_speaker_to_utterances()
+
+        current_speakers_count = len(spk2utt)
+
+        if current_speakers_count >= target_number_of_speakers:
+            print("Number of speakers already greater or equal to {}.".format(target_number_of_speakers))
+            return
+
+        spk2utt_count = {speaker_id: len(utterances) for speaker_id, utterances in spk2utt.items()}
+
+        utt_count = sum(spk2utt_count.values())
+
+        target_num_utts_per_speaker = int(utt_count / target_number_of_speakers)
+
+        # at least one part per speaker
+        spk2parts = {speaker_id : 1 for speaker_id, utt_count in spk2utt_count.items()}
+        spk2utt_count_intermediate = {speaker_id : utt_count - target_num_utts_per_speaker for speaker_id, utt_count in spk2utt_count.items()}
+
+        num_assigned_parts = len(spk2parts)
+
+        for i in range(num_assigned_parts, target_number_of_speakers):
+            sorted_spk2utt_count = sorted(spk2utt_count_intermediate.items(), key=lambda t: t[1], reverse=True)
+            sorted_spk2utt_count[0][1] - target_num_utts_per_speaker
+            spk2parts[sorted_spk2utt_count[0][0]] += 1
+
+        new_utterances = {}
+        new_transcriptions = {}
+        new_transcriptions_raw = {}
+        new_utt2spk = {}
+        new_spk_info = {}
+
+        for speaker_id, num_parts in spk2parts.items():
+            num_utts = spk2utt_count[speaker_id]
+            num_utts_per_part = int(num_utts / num_parts)
+            num_utts_rest = num_utts % num_parts
+
+            start_index = 0
+            shuffled_utt_ids = list(spk2utt[speaker_id])
+            random.shuffle(shuffled_utt_ids)
+
+            for i in range(num_parts):
+                num_utts_new = num_utts_per_part
+
+                if num_utts_rest > 0:
+                    num_utts_new += 1
+                    num_utts_rest -= 1
+
+                new_speaker_id = '{}_{}'.format(speaker_id, i)
+                part_utt_ids = shuffled_utt_ids[start_index:start_index+num_utts_new]
+
+                for utt_id in part_utt_ids:
+                    changed_utt_id = utt_id.replace(speaker_id, new_speaker_id)
+
+                    new_utterances[changed_utt_id] = list(self.utterances[utt_id])
+
+                    if utt_id in self.transcriptions.keys():
+                        new_transcriptions[changed_utt_id] = self.transcriptions[utt_id]
+
+                    if utt_id in self.transcriptions_raw.keys():
+                        new_transcriptions_raw[changed_utt_id] = self.transcriptions_raw[utt_id]
+
+                    if utt_id in self.utt2spk.keys():
+                        new_utt2spk[changed_utt_id] = new_speaker_id
+
+                if speaker_id in self.speaker_info.keys():
+                    new_spk_info[new_speaker_id] = dict(self.speaker_info[speaker_id])
+                else:
+                    new_spk_info[new_speaker_id] = {}
+
+                new_spk_info[new_speaker_id]['partfrom'] = speaker_id
+
+                start_index += num_utts_new
+
+        self.utterances = new_utterances
+        self.transcriptions = new_transcriptions
+        self.transcriptions_raw = new_transcriptions_raw
+        self.utt2spk = new_utt2spk
+        self.speaker_info = new_spk_info
+
     #
     #   READ / WRITE
     #

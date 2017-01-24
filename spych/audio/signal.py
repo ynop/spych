@@ -81,14 +81,15 @@ def add_noise_to_wav(signal_path, noise_path, output_path, snr=None):
         noise_samples = noise_samples[start_index:start_index + signal_samples.size]
 
     if noise_samples.size < signal_samples.size:
-        noise_samples_extended = noise_samples.copy()
+        noise_parts = []
+        noise_sample_count = 0
 
-        while noise_samples_extended.size < signal_samples.size:
-            max_to_add = signal_samples.size - noise_samples_extended.size
+        while noise_sample_count < signal_samples.size:
+            max_to_add = signal_samples.size - noise_sample_count
+            noise_parts.append(noise_samples.copy()[:max_to_add])
+            noise_sample_count += noise_samples.size
 
-            noise_samples_extended = np.concatenate([noise_samples_extended, noise_samples[:max_to_add]])
-
-        noise_samples = noise_samples_extended
+        noise_samples = np.concatenate(noise_parts)
 
     output_samples = add_noise_to_signal(signal_samples, noise_samples, snr=snr)
     scipy.io.wavfile.write(output_path, signal_sampling_rate, output_samples)
