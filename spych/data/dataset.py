@@ -352,7 +352,7 @@ class Dataset(object):
         speaker_mapping = {}
 
         for import_speaker_id, info_dict in speaker_info.items():
-            speaker_id = naming.index_name_if_in_list(import_speaker_id, self.speaker_info.keys())
+            speaker_id = naming.index_name_if_in_list(import_speaker_id, self.speaker_info.keys(), prefix='s', suffix='p')
             speaker_mapping[import_speaker_id] = speaker_id
 
             self.speaker_info[speaker_id] = info_dict
