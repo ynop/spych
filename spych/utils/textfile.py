@@ -2,6 +2,7 @@ import os
 
 from spych.utils import text
 
+
 def read_separated_lines(path, separator=' ', max_columns=-1):
     """
     Reads a text file where each line represents a record with some separated columns.
@@ -58,27 +59,37 @@ def read_key_value_lines(path, separator=' ', default_value=''):
     return dic
 
 
-def write_separated_lines(path, values, separator=' '):
+def write_separated_lines(path, values, separator=' ', sort_by_column=0):
     """
     Writes list or dict to file line by line. Dict can have list as value then they written separated on the line.
 
     :param path: Path to write file to.
     :param values: Dict or list
     :param separator: Separator to use between columns.
+    :param sort_by_column: if > 0, sorts the list by the given index, if its 0 or 1 and its a dictionary it sorts it by either the
+    key (0) or value (1). By default 0, meaning sorted by the first column or the key.
     :return:
     """
     f = open(path, 'w', encoding='utf-8')
 
     if type(values) is dict:
-        for key in sorted(values.keys()):
-            value = values[key]
+        if sort_by_column in [0, 1]:
+            items = sorted(values.items(), key=lambda t: t[sort_by_column])
+        else:
+            items = values.items()
 
+        for key, value in items:
             if type(value) is list:
                 value = separator.join(value)
 
             f.write('{}{}{}\n'.format(key, separator, value))
     elif type(values) is list:
-        for record in values:
+        if 0 <= sort_by_column < len(values):
+            items = sorted(values)
+        else:
+            items = values
+
+        for record in items:
             f.write('{}\n'.format(separator.join(record)))
 
     f.close()

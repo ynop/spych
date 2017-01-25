@@ -507,7 +507,7 @@ class Dataset(object):
         textfile.write_separated_lines(wav_path, self.wavs)
         self.write_utterances(utterances_path)
         textfile.write_separated_lines(transcriptions_path, self.transcriptions)
-        textfile.write_separated_lines(utt2spk_path, self.utt2spk)
+        textfile.write_separated_lines(utt2spk_path, self.utt2spk, sort_by_column=1)
         jsonfile.write_json_to_file(spk_info_path, self.speaker_info)
         textfile.write_separated_lines(transcriptions_raw_path, self.transcriptions_raw)
 
