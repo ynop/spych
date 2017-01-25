@@ -102,7 +102,7 @@ class KaldiExporter(object):
         textfile.write_separated_lines(os.path.join(self.target_folder, WAV_NAME), wavs, separator=' ')
         self.write_utterances()
         textfile.write_separated_lines(os.path.join(self.target_folder, TRANSCRIPTION_NAME), self.dataset.transcriptions, separator=' ')
-        textfile.write_separated_lines(os.path.join(self.target_folder, UTT2SPK_NAME), self.dataset.utt2spk, separator=' ')
+        textfile.write_separated_lines(os.path.join(self.target_folder, UTT2SPK_NAME), self.dataset.utt2spk, separator=' ', sort_by_column=1)
         textfile.write_separated_lines(os.path.join(self.target_folder, SPK2GENDER_NAME), spk2gender, separator=' ')
 
     def write_utterances(self):
