@@ -1,12 +1,9 @@
-__author__ = 'buec'
-
 import xml.etree.ElementTree as et
 import xml.dom.minidom
 
-from pyspeechgrammar import parser
-from pyspeechgrammar import model
+from spych.grammar import parser
 
-from pyspeechgrammar.srgs_xml import serialize
+from spych.grammar.srgs_xml import serialize
 
 class SRGSXMLParser(parser.BaseParser):
 

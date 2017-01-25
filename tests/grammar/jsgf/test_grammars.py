@@ -1,10 +1,8 @@
-__author__ = 'buec'
-
 import unittest
 import modgrammar
 
-from pyspeechgrammar.jsgf import grammars
-from pyspeechgrammar import model
+from spych.grammar.jsgf import grammars
+from spych.grammar import model
 
 
 class JavaIdentifierTest(unittest.TestCase):

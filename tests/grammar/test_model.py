@@ -1,8 +1,6 @@
-from pyspeechgrammar import model
-
-__author__ = 'buec'
-
 import unittest
+
+from spych.grammar import model
 
 
 class GrammarTestCase(unittest.TestCase):

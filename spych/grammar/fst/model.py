@@ -1,7 +1,4 @@
-
-
 class FiniteStateTransducer(object):
-
     def __init__(self):
         self.start = None
         self.final = None
@@ -11,7 +8,6 @@ class FiniteStateTransducer(object):
 
 
 class FSTState(object):
-
     def __init__(self, identifier=0, weight=0.0):
         self.identifier = identifier
         self.weight = weight
@@ -21,7 +17,6 @@ class FSTState(object):
 
 
 class FSTArc(object):
-
     def __init__(self, src_state, dest_state, label, weight=0.0):
         self.src_state = src_state
         self.dest_state = dest_state
