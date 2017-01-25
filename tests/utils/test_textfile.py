@@ -1,5 +1,6 @@
 import os
 import unittest
+import tempfile
 
 from spych.utils import textfile
 
@@ -43,6 +44,34 @@ class TextFileUtilsTest(unittest.TestCase):
         records = textfile.read_key_value_lines(file_path, separator=" ")
 
         self.assertDictEqual(expected, records)
+
+    def test_write_separated_lines_sorted(self):
+        data = {
+            "hallo-0_103": "hallo-0_1",
+            "hallo-0_122": "hallo-0",
+            "hallo-0_1031": "hallo-0_1",
+            "hallo-0_1322": "hallo-0",
+            "hallo-0_1224": "hallo-0"
+        }
+
+        f, path = tempfile.mkstemp(text=True)
+        os.close(f)
+
+        textfile.write_separated_lines(path, data, separator=' ', sort_by_column=1)
+
+        f = open(path, 'r')
+        value = f.read()
+        f.close()
+
+        lines = value.strip().split('\n')
+
+        self.assertEqual(5, len(lines))
+
+        self.assertTrue(lines[0].endswith('hallo-0'))
+        self.assertTrue(lines[1].endswith('hallo-0'))
+        self.assertTrue(lines[2].endswith('hallo-0'))
+        self.assertTrue(lines[3].endswith('hallo-0_1'))
+        self.assertTrue(lines[4].endswith('hallo-0_1'))
 
 
 if __name__ == '__main__':
