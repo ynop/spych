@@ -8,7 +8,7 @@ def index_name_if_in_list(name, name_list, suffix='', prefix=''):
     :param prefix: The prefix to append in front of the index.
     :return: Unique name
     """
-    new_name = '{}{}{}'.format(prefix, name, suffix)
+    new_name = '{}'.format(name)
     index = 1
 
     while new_name in name_list:
