@@ -368,11 +368,33 @@ class Dataset(object):
         :return:
         """
         wav_id_mapping = self.import_wavs(dataset.wavs, base_path=dataset.path, copy_files=copy_wavs)
-        utt_id_mapping = self.add_utterances(dataset.utterances, wav_id_mapping=wav_id_mapping)
         speaker_id_mapping = self.add_speaker_info(dataset.speaker_info)
-        self.set_transcriptions(dataset.transcriptions, utt_id_mapping=utt_id_mapping)
-        self.set_utt2spk(dataset.utt2spk, utt_id_mapping=utt_id_mapping, speaker_id_mapping=speaker_id_mapping)
-        self.set_transcriptions_raw(dataset.transcriptions_raw, utt_id_mapping=utt_id_mapping)
+
+        new_utterances = {}
+        new_transcriptions = {}
+        new_transcriptions_raw = {}
+        new_utt2spk = {}
+
+        for utt_id in dataset.utterances.keys():
+            new_utt_id = utt_id
+
+            if utt_id in dataset.utt2spk.keys():
+                old_speaker_id = dataset.utt2spk[utt_id]
+
+                if old_speaker_id in speaker_id_mapping.keys() and speaker_id_mapping[old_speaker_id] != old_speaker_id:
+                    new_speaker_id = speaker_id_mapping[old_speaker_id]
+                    if utt_id.startswith(old_speaker_id):
+                        new_utt_id = utt_id.replace(old_speaker_id, new_speaker_id)
+
+            new_utterances[new_utt_id] = dataset.utterances[utt_id]
+            new_transcriptions[new_utt_id] = dataset.transcriptions[utt_id]
+            new_transcriptions_raw[new_utt_id] = dataset.transcriptions_raw[utt_id]
+            new_utt2spk[new_utt_id] = dataset.utt2spk[utt_id]
+
+        utt_id_mapping = self.add_utterances(new_utterances, wav_id_mapping=wav_id_mapping)
+        self.set_transcriptions(new_transcriptions, utt_id_mapping=utt_id_mapping)
+        self.set_utt2spk(new_utt2spk, utt_id_mapping=utt_id_mapping, speaker_id_mapping=speaker_id_mapping)
+        self.set_transcriptions_raw(new_transcriptions_raw, utt_id_mapping=utt_id_mapping)
 
     def add_random_noise(self, snr=None, snr_range=None):
         """
@@ -412,8 +434,8 @@ class Dataset(object):
         target_num_utts_per_speaker = int(utt_count / target_number_of_speakers)
 
         # at least one part per speaker
-        spk2parts = {speaker_id : 1 for speaker_id, utt_count in spk2utt_count.items()}
-        spk2utt_count_intermediate = {speaker_id : utt_count - target_num_utts_per_speaker for speaker_id, utt_count in spk2utt_count.items()}
+        spk2parts = {speaker_id: 1 for speaker_id, utt_count in spk2utt_count.items()}
+        spk2utt_count_intermediate = {speaker_id: utt_count - target_num_utts_per_speaker for speaker_id, utt_count in spk2utt_count.items()}
 
         num_assigned_parts = len(spk2parts)
 
@@ -445,7 +467,7 @@ class Dataset(object):
                     num_utts_rest -= 1
 
                 new_speaker_id = '{}_{}'.format(speaker_id, i)
-                part_utt_ids = shuffled_utt_ids[start_index:start_index+num_utts_new]
+                part_utt_ids = shuffled_utt_ids[start_index:start_index + num_utts_new]
 
                 for utt_id in part_utt_ids:
                     changed_utt_id = utt_id.replace(speaker_id, new_speaker_id)
