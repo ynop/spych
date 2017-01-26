@@ -1,57 +1,48 @@
-import collections
-
-
-class LabelScore(object):
-    """
-    Represents the alignment stats of a single label.
-
-    - Num correct occurences
-    - Num substitutions per substituted hyp label
-    - Num deletions
-    - Num insertions
-    """
-    def __init__(self):
-        self.correct = 0
-        self.substitutions = collections.defaultdict(int)
-        self.insertions = 0
-        self.deletions = 0
-
-
-class Score(object):
-    """
-    Represents the score between of an alignment.
-    """
-    def __init__(self):
-        self.labels = collections.defaultdict(LabelScore)
+from spych.scoring import result
+from spych.scoring import sequence
 
 
 class Scorer(object):
     """
-    Calculates the score between two aligned sequences.
+    Creates alignment and evaluates score of the alignments.
     """
-    def __init__(self):
-        pass
 
-    def score(self, alignment):
-        """
-        Calculate and return the score for the given alignment.
-        """
-        score = Score()
+    def __init__(self, aligner, evaluator):
+        self.aligner = aligner
+        self.evaluator = evaluator
 
-        for pair in alignment.pairs:
-            ref = pair[0]
-            hyp = pair[1]
-
-            if ref is None and hyp is not None:
-                score.labels[hyp.label].insertions += 1
-
-            elif ref is not None and hyp is None:
-                score.labels[ref.label].deletions += 1
-
-            elif ref.label != hyp.label:
-                score.labels[ref.label].substitutions[hyp.label] += 1
-
-            elif ref.label == hyp.label:
-                score.labels[ref.label].correct += 1
+    def score_sequences(self, ref_sequence, hyp_sequence):
+        """ Align and evaluate two sequences. """
+        alignment = self.aligner.align(ref_sequence, hyp_sequence)
+        score = self.evaluator.match(alignment)
 
         return score
+
+    def score_list_of_sequences(self, ref_sequences, hyp_sequences):
+        """ Align and evaluate sequences from two dictionaries. The keys in the dictionary represent the id to match two sequences from both dicts. """
+
+        if set(ref_sequences.keys()) != set(hyp_sequences.keys()):
+            print("Reference and hypothesis have different sequences. Only evaluate the matching ones.")
+
+        score = result.ScoreAggregation()
+
+        for seq_id, sequence in ref_sequences.items():
+            if seq_id in hyp_sequences.keys():
+                seq_score = self.score_sequences(sequence, hyp_sequences[seq_id])
+                score.scores[seq_id] = seq_score
+
+        return score
+
+    def score_ctm(self, ref_ctm_path, hyp_ctm_path):
+        """ Align and evaluate the sequences of two ctm files. """
+        ref_sequences = sequence.Sequence.from_ctm(ref_ctm_path)
+        hyp_sequences = sequence.Sequence.from_ctm(hyp_ctm_path)
+
+        return self.score_list_of_sequences(ref_sequences, hyp_sequences)
+
+    def score_audacity_labels(self, ref_audacity_label_path, hyp_audacity_label_path):
+        """ Align and evaluate the two sequences from two audacity label files. """
+        ref_sequence = sequence.Sequence.from_audacity_labels(ref_audacity_label_path)
+        hyp_sequence = sequence.Sequence.from_audacity_labels(hyp_audacity_label_path)
+
+        return self.score_sequences(ref_sequence, hyp_sequence)

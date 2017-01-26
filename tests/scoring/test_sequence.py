@@ -9,7 +9,7 @@ class SequenceTest(unittest.TestCase):
         self.items = [
             sequence.SequenceItem('sam', 0.1, 0.7),
             sequence.SequenceItem('dean', 14.2, 2.6),
-            sequence.SequenceItem('crowly', 8.2, 1.5),
+            sequence.SequenceItem('crowley', 8.2, 1.5),
             sequence.SequenceItem('cas', 25.7, 7.4),
             sequence.SequenceItem('dean', 40.2, 10.1),
             sequence.SequenceItem('sam', 19.3, 2.8),

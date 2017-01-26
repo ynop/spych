@@ -4,6 +4,7 @@ from spych.cli.controller import base
 from spych.cli.controller import dataset
 from spych.cli.controller import synthesis
 from spych.cli.controller import lexicon
+from spych.cli.controller import scoring
 from spych.cli.controller import wav
 
 
@@ -24,6 +25,7 @@ class SpychApp(foundation.CementApp):
             dataset.DatasetModifyController,
             lexicon.LexiconController,
             synthesis.SynthesisController,
+            scoring.ScoreController,
             wav.WavController,
             wav.SNRController
         ]

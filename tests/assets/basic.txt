@@ -1,0 +1,5 @@
+3.1	4.7	jingle1
+15.5	17.2	jingle2
+22.3	23.4	jingle2
+25.8	27.3	jingle1
+35.0	36.1	jingle3

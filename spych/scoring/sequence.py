@@ -66,7 +66,7 @@ class Sequence(object):
     @classmethod
     def from_ctm(cls, path):
         """
-        Return list of sequences from ctm file.
+        Return dictionary of sequences from ctm file.
         """
         ctm_entries = ctm.read_file(path)
         sequences = {}

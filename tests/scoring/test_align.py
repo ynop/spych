@@ -8,7 +8,7 @@ class TimeBasedAlignerTest(unittest.TestCase):
     def setUp(self):
         self.ref_seq = sequence.Sequence.from_tuples([
             ('sam', 0.1, 0.7),
-            ('crowly', 8.2, 1.5),
+            ('crowley', 8.2, 1.5),
             ('dean', 14.2, 2.6),
             ('sam', 19.3, 2.8),
             ('cas', 25.7, 7.4),
@@ -17,9 +17,9 @@ class TimeBasedAlignerTest(unittest.TestCase):
 
         self.hyp_seq = sequence.Sequence.from_tuples([
             ('sam', 0.2, 0.7),
-            ('crowly', 8.1, 1.7),
+            ('crowley', 8.1, 1.7),
             ('cas', 14.4, 2.6),
-            ('crowly', 18.2, 1.3),
+            ('crowley', 18.2, 1.3),
             ('sam', 19.3, 2.8),
             ('dean', 41.3, 9.8)
         ])
