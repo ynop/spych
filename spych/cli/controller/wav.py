@@ -86,3 +86,25 @@ class SNRController(controller.CementBaseController):
             print("SNR : {}".format(snr))
         else:
             print("You have to provide a label or a noise file.")
+
+
+class WavClipController(controller.CementBaseController):
+    class Meta:
+        label = 'clip'
+        stacked_on = 'wav'
+        stacked_type = 'nested'
+        description = "Extract segments from wav."
+
+        arguments = [
+            (['input_wav'], dict(action='store', help='Path to wav to extract segments from.')),
+            (['output_directory'], dict(action='store', help='Path to directory to store extracted segments.')),
+            (['--label-path'], dict(action='store', help='Use audacity label file as segments.'))
+        ]
+
+    @controller.expose(hide=True)
+    def default(self):
+        input_wav = self.app.pargs.input_wav
+        output_directory = self.app.pargs.output_directory
+        label_path = self.app.pargs.label_path
+
+        signal.clip_segments_from_wav(input_wav, label_path, output_directory)

@@ -1,5 +1,9 @@
+import os
+
 import numpy as np
 import scipy.io.wavfile
+
+from spych.assets import audacity
 
 
 def calculate_energy_of_samples(samples):
@@ -182,3 +186,68 @@ def estimate_snr_with_labels(signal, sampling_rate, labels):
     signal_samples = np.concatenate(signal_sample_chunks)
 
     return calculate_snr(signal_samples, noise_samples)
+
+
+def clip_segments(signal, sampling_rate, segments={}):
+    """
+    Extract the given segments from signal.
+
+    e.g. segments:
+
+    {
+        # label : (start, end)
+        'ax' : (1.5, 7.4),
+        'by' : (19.4, 24.5)
+    }
+
+    :param signal: Samples ndarray
+    :param segments: Dictionary with segments
+    :return: Dictionary with (label/samples)
+    """
+
+    output = {}
+
+    for label, range in segments.items():
+        start = range[0]
+        end = range[1]
+
+        start_sample = round(start * sampling_rate)
+        end_sample = round(end * sampling_rate)
+
+        output[label] = signal[start_sample:end_sample]
+
+    return output
+
+
+def clip_segments_from_wav(wav_path, audacity_label_path, output_directory):
+    """
+
+    :param wav_path:
+    :param segments:
+    :param output_directory:
+    :return:
+    """
+
+    sampling_rate, samples = scipy.io.wavfile.read(wav_path)
+    labels = audacity.read_label_file(audacity_label_path)
+
+    segments = {}
+
+    for label in labels:
+        name = label[2]
+        index = 1
+
+        while name in segments.keys():
+            name = '{}_{}'.format(label[2], index)
+            index += 1
+
+        segments[name] = (label[0], label[1])
+
+    parts = clip_segments(samples, sampling_rate, segments)
+
+    if not os.path.exists(output_directory):
+        os.makedirs(output_directory)
+
+    for label, samples in parts.items():
+        path = os.path.join(output_directory, '{}.wav'.format(label))
+        scipy.io.wavfile.write(path, sampling_rate, samples)

@@ -90,7 +90,9 @@ def write_separated_lines(path, values, separator=' ', sort_by_column=0):
             items = values
 
         for record in items:
-            f.write('{}\n'.format(separator.join(record)))
+            str_values = [str(value) for value in record]
+
+            f.write('{}\n'.format(separator.join(str_values)))
 
     f.close()
 

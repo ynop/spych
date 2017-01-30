@@ -124,6 +124,10 @@ class Score(object):
         else:
             return self.num_correct / n
 
+    @property
+    def aggregated_label_stats(self):
+        return self
+
 
 class ScoreAggregation(object):
     """

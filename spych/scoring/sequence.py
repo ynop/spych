@@ -48,6 +48,56 @@ class Sequence(object):
 
         return matching_items
 
+    def items_with_matching_start_time(self, start, label=None, threshold=1.0):
+        """
+        Return all items with the same start time (or not less or more difference than threshold).
+        If label is not None only return the items with the given label.
+
+        :param start: Start time [seconds]
+        :param label: Label to match
+        :param threshold: Threshold for the start time [seconds]
+        :return: list of (index, item) tuples
+        """
+
+        matching_items = []
+
+        min_start_time = start - threshold
+        max_start_time = start + threshold
+
+        for index, item in enumerate(self.items):
+            if min_start_time <= item.start <= max_start_time:
+                if label is None or item.label == label:
+                    matching_items.append((index, item))
+
+        return matching_items
+
+    def item_with_the_nearest_start_time(self, start, label=None, max_delta=1.0):
+        """
+        Return the item which is closest to the given start time. If label is not None only consider the items with the given label.
+
+        :param start: Start time [seconds]
+        :param label: Label to match
+        :param max_delta: Max time delta to consider an item as a match [seconds]
+        :return: item, None if no matching item found
+        """
+
+        best_item = None
+        best_item_delta = -1
+
+        min_start_time = start - max_delta
+        max_start_time = start + max_delta
+
+        for item in self.items:
+            if label is None or label == item.label:
+                if min_start_time <= item.start <= max_start_time:
+                    time_delta = abs(item.start - start)
+
+                    if best_item is None or time_delta < best_item_delta:
+                        best_item = item
+                        best_item_delta = time_delta
+
+        return best_item
+
     def append_item(self, item):
         self.items.append(item)
 
