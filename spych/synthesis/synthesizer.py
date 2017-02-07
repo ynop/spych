@@ -226,7 +226,7 @@ class Synthesizer(object):
 
         return data
 
-    def synthesize_dataset(self, source_dataset, target_path, voice):
+    def synthesize_dataset(self, source_dataset, target_path):
         """
         Create a synthesized dataset equal to the given source dataset.
 
@@ -251,10 +251,16 @@ class Synthesizer(object):
             new_info = dict(info)
             new_info.update({
                 dataset.SPEAKER_INFO_SYNTHESIZED: True,
-                dataset.SPEAKER_INFO_SYNTHESIZER_TOOL: "marytts",
-                dataset.SPEAKER_INFO_SYNTHESIZER_VOICE: voice,
-                dataset.SPEAKER_INFO_GENDER: "m"
+                dataset.SPEAKER_INFO_SYNTHESIZER_TOOL: "marytts"
             })
+
+            if dataset.SPEAKER_INFO_GENDER in info.keys() and info[dataset.SPEAKER_INFO_GENDER] == 'f':
+                new_info[dataset.SPEAKER_INFO_SYNTHESIZER_VOICE] = 'bits1-hsmm'
+                new_info[dataset.SPEAKER_INFO_GENDER] = 'f'
+            else:
+                new_info[dataset.SPEAKER_INFO_SYNTHESIZER_VOICE] = 'bits3-hsmm'
+                new_info[dataset.SPEAKER_INFO_GENDER] = 'm'
+
             speaker_info[speaker_id] = new_info
 
         for utt_id in source_dataset.utterances.keys():
@@ -271,6 +277,7 @@ class Synthesizer(object):
             if transcription in synt_cache.keys():
                 shutil.copy(synt_cache[transcription], wav_path)
             else:
+                voice = speaker_info[speaker_id][dataset.SPEAKER_INFO_SYNTHESIZER_VOICE]
                 if transcription_raw is not None:
                     self.synthesize_text(transcription_raw, wav_path, voice)
                 else:

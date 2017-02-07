@@ -66,4 +66,4 @@ def synthesize_dataset(source_path, target_path):
     source_dataset = dataset.Dataset.load_from_path(source_path)
 
     synthesizer_instance = mary.MarySynthesizer(config=None)
-    synthesizer_instance.synthesize_dataset(source_dataset, target_path, 'bits3-hsmm')
+    synthesizer_instance.synthesize_dataset(source_dataset, target_path)
