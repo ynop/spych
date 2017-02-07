@@ -1,5 +1,6 @@
 import os
 import uuid
+import shutil
 
 from spych.data import dataset
 from spych.utils import textfile
@@ -211,7 +212,7 @@ class Synthesizer(object):
                     dataset.SPEAKER_INFO_SYNTHESIZER_TOOL: "marytts",
                     dataset.SPEAKER_INFO_SYNTHESIZER_EFFECTS: effects,
                     dataset.SPEAKER_INFO_SYNTHESIZER_VOICE: voice,
-                    dataset.SPEAKER_INFO_GENDER : "m"
+                    dataset.SPEAKER_INFO_GENDER: "m"
                 }
 
         wav_id_mapping = data.import_wavs(wavs, copy_files=False)
@@ -224,3 +225,71 @@ class Synthesizer(object):
         data.save()
 
         return data
+
+    def synthesize_dataset(self, source_dataset, target_path, voice):
+        """
+        Create a synthesized dataset equal to the given source dataset.
+
+        :param source_dataset: Dataset Template
+        :param target_path: Path to store the synthesized dataset.
+        :param voice: Voice to use for synthesis.
+        :return: Synthesized dataset
+        """
+        target_dataset = dataset.Dataset(dataset_folder=target_path)
+        target_dataset.save()
+
+        synt_cache = {}
+
+        wavs = {}
+        utterances = {}
+        transcriptions = {}
+        transcriptions_raw = {}
+        utt2spk = {}
+        speaker_info = {}
+
+        for speaker_id, info in source_dataset.speaker_info.items():
+            new_info = dict(info)
+            new_info.update({
+                dataset.SPEAKER_INFO_SYNTHESIZED: True,
+                dataset.SPEAKER_INFO_SYNTHESIZER_TOOL: "marytts",
+                dataset.SPEAKER_INFO_SYNTHESIZER_VOICE: voice,
+                dataset.SPEAKER_INFO_GENDER: "m"
+            })
+            speaker_info[speaker_id] = new_info
+
+        for utt_id in source_dataset.utterances.keys():
+            transcription_raw = None
+            if utt_id in source_dataset.transcriptions_raw.keys():
+                transcription_raw = source_dataset.transcriptions_raw[utt_id]
+            transcription = source_dataset.transcriptions[utt_id]
+            speaker_id = source_dataset.utt2spk[utt_id]
+            utterance = source_dataset.utterances[utt_id]
+
+            wav_id = uuid.uuid1()
+            wav_path = os.path.join(target_dataset.path, '{}.wav'.format(wav_id))
+
+            if transcription in synt_cache.keys():
+                shutil.copy(synt_cache[transcription], wav_path)
+            else:
+                if transcription_raw is not None:
+                    self.synthesize_text(transcription_raw, wav_path, voice)
+                else:
+                    self.synthesize_text(transcription, wav_path, voice)
+                synt_cache[transcription] = wav_path
+
+            wavs[wav_id] = wav_path
+            utterances[utt_id] = [wav_id]
+            transcriptions[utt_id] = transcription
+            transcriptions_raw[utt_id] = transcription_raw
+            utt2spk[utt_id] = speaker_id
+
+        wav_id_mapping = target_dataset.import_wavs(wavs, copy_files=False)
+        utt_id_mapping = target_dataset.add_utterances(utterances, wav_id_mapping=wav_id_mapping)
+        speaker_id_mapping = target_dataset.add_speaker_info(speaker_info)
+        target_dataset.set_transcriptions(transcriptions, utt_id_mapping=utt_id_mapping)
+        target_dataset.set_transcriptions_raw(transcriptions_raw, utt_id_mapping=utt_id_mapping)
+        target_dataset.set_utt2spk(utt2spk, utt_id_mapping=utt_id_mapping, speaker_id_mapping=speaker_id_mapping)
+
+        target_dataset.save()
+
+        return target_dataset

@@ -1,5 +1,6 @@
 import os
 
+from spych.data import dataset
 from spych.synthesis import synthesizer
 from spych.synthesis import mary
 from spych.utils import jsonfile
@@ -59,3 +60,10 @@ def synthesize_sentence_corpus_and_create_datasets_with_configs(corpus_path, con
     synthesizer_instance = mary.MarySynthesizer(config=synthesizer_config)
 
     synthesizer_instance.synthesize_sentence_corpus_and_create_dataset(corpus_path, dataset_path, corpus_clean_path=corpus_clean_path)
+
+
+def synthesize_dataset(source_path, target_path):
+    source_dataset = dataset.Dataset.load_from_path(source_path)
+
+    synthesizer_instance = mary.MarySynthesizer(config=None)
+    synthesizer_instance.synthesize_dataset(source_dataset, target_path, 'bits3-hsmm')
