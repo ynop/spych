@@ -4,3 +4,5 @@ requests
 cement
 httplib2
 pystache
+numpy
+scipy

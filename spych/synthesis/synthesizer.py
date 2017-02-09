@@ -1,6 +1,7 @@
 import os
 import uuid
 import shutil
+import collections
 
 from spych.data import dataset
 from spych.utils import textfile
@@ -238,7 +239,7 @@ class Synthesizer(object):
         target_dataset = dataset.Dataset(dataset_folder=target_path)
         target_dataset.save()
 
-        synt_cache = {}
+        synt_cache = collections.defaultdict(dict)
 
         wavs = {}
         utterances = {}
@@ -274,15 +275,16 @@ class Synthesizer(object):
             wav_id = uuid.uuid1()
             wav_path = os.path.join(target_dataset.path, '{}.wav'.format(wav_id))
 
-            if transcription in synt_cache.keys():
-                shutil.copy(synt_cache[transcription], wav_path)
+            voice = speaker_info[speaker_id][dataset.SPEAKER_INFO_SYNTHESIZER_VOICE]
+
+            if transcription in synt_cache.keys() and voice in synt_cache[transcription].keys():
+                shutil.copy(synt_cache[transcription][voice], wav_path)
             else:
-                voice = speaker_info[speaker_id][dataset.SPEAKER_INFO_SYNTHESIZER_VOICE]
                 if transcription_raw is not None:
                     self.synthesize_text(transcription_raw, wav_path, voice)
                 else:
                     self.synthesize_text(transcription, wav_path, voice)
-                synt_cache[transcription] = wav_path
+                synt_cache[transcription][voice] = wav_path
 
             wavs[wav_id] = wav_path
             utterances[utt_id] = [wav_id]
