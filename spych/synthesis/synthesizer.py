@@ -272,7 +272,7 @@ class Synthesizer(object):
             speaker_id = source_dataset.utt2spk[utt_id]
             utterance = source_dataset.utterances[utt_id]
 
-            wav_id = uuid.uuid1()
+            wav_id = str(uuid.uuid1())
             wav_path = os.path.join(target_dataset.path, '{}.wav'.format(wav_id))
 
             voice = speaker_info[speaker_id][dataset.SPEAKER_INFO_SYNTHESIZER_VOICE]
