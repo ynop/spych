@@ -1,6 +1,5 @@
 import os
 
-from spych.dataset import dataset
 from spych.dataset import utterance
 from spych.dataset import segmentation
 from spych.dataset.io import base
@@ -23,10 +22,60 @@ SPEAKER_INFO_SYNTHESIZER_TOOL = 'synthesizer_tool'
 
 
 class LegacySpychDatasetLoader(base.DatasetLoader):
+    """
+    Loads dataset from the old spych format.
+
+    wavs.txt
+    --------------------------------
+    [wav-id] [relative-wav-path]
+
+    utterances.txt
+    --------------------------------
+    [utt-id] [wav-id] [start] [end]
+
+    transcriptions.txt
+    --------------------------------
+    [utt-id] [transcription]
+
+    transcriptions_raw.txt
+    --------------------------------
+    [utt-id] [transcription raw]
+
+    Transcription with punctuation.
+
+    utt2spk.txt
+    --------------------------------
+    [utt-id] [speaker-id]
+
+    speaker_info.json
+    --------------------------------
+    {
+        "speaker_id" : {
+            "gender" : "m"/"f",
+            ...
+        },
+        ...
+    }
+    """
+
     def type(self):
         return 'legacy_spych'
 
-    def load(self, path):
+    #
+    #  Load
+    #
+
+    def _load(self, loading_dataset):
+        self._check_for_necessary_files_in_path(loading_dataset.path)
+
+        self._load_wavs(loading_dataset)
+        self._load_utterances(loading_dataset)
+        self._load_transcriptions(loading_dataset)
+        self._load_speakers(loading_dataset)
+
+        return loading_dataset
+
+    def _check_for_necessary_files_in_path(self, path):
         necessary_files = [WAV_FILE_NAME, SEGMENTS_FILE_NAME]
 
         for file_name in necessary_files:
@@ -35,18 +84,14 @@ class LegacySpychDatasetLoader(base.DatasetLoader):
             if not os.path.isfile(file_path):
                 raise IOError('Invalid dataset: file not found {}'.format(file_name))
 
-        wav_path = os.path.join(path, WAV_FILE_NAME)
-        utterances_path = os.path.join(path, SEGMENTS_FILE_NAME)
-        transcriptions_path = os.path.join(path, TRANSCRIPTION_FILE_NAME)
-        transcriptions_raw_path = os.path.join(path, TRANSCRIPTION_RAW_FILE_NAME)
-        utt2spk_path = os.path.join(path, UTT2SPK_FILE_NAME)
-        spk_info_path = os.path.join(path, SPEAKER_INFO_FILE_NAME)
-
-        loading_dataset = dataset.Dataset(path)
+    def _load_wavs(self, loading_dataset):
+        wav_path = os.path.join(loading_dataset, WAV_FILE_NAME)
 
         for wav_id, wav_path in textfile.read_key_value_lines(wav_path):
             loading_dataset.add_file(wav_path, file_idx=wav_id)
 
+    def _load_utterances(self, loading_dataset):
+        utterances_path = os.path.join(loading_dataset.path, SEGMENTS_FILE_NAME)
         for utt_id, utt_info in textfile.read_separated_lines_with_first_key(utterances_path, max_columns=4):
             start = utterance.START_FULL_FILE
             end = utterance.END_FULL_FILE
@@ -59,6 +104,10 @@ class LegacySpychDatasetLoader(base.DatasetLoader):
 
             loading_dataset.add_utterance(utt_info[0], utterance_idx=utt_id, start=start, end=end)
 
+    def _load_transcriptions(self, loading_dataset):
+        transcriptions_path = os.path.join(loading_dataset.path, TRANSCRIPTION_FILE_NAME)
+        transcriptions_raw_path = os.path.join(loading_dataset.path, TRANSCRIPTION_RAW_FILE_NAME)
+
         if os.path.isfile(transcriptions_path):
             for utt_id, transcription in textfile.read_key_value_lines(transcriptions_path):
                 loading_dataset.add_segmentation(utt_id, segments=transcription, key=segmentation.TEXT_SEGMENTATION)
@@ -66,6 +115,10 @@ class LegacySpychDatasetLoader(base.DatasetLoader):
         if os.path.isfile(transcriptions_raw_path):
             for utt_id, transcription_raw in textfile.read_key_value_lines(transcriptions_raw_path):
                 loading_dataset.add_segmentation(utt_id, segments=transcription_raw, key=segmentation.RAW_TEXT_SEGMENTATION)
+
+    def _load_speakers(self, loading_dataset):
+        utt2spk_path = os.path.join(loading_dataset.path, UTT2SPK_FILE_NAME)
+        spk_info_path = os.path.join(loading_dataset.path, SPEAKER_INFO_FILE_NAME)
 
         if os.path.isfile(spk_info_path):
             for spk_id, spk_info in jsonfile.read_json_file(spk_info_path):
