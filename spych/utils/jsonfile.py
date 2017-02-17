@@ -8,9 +8,8 @@ def write_json_to_file(path, data):
     :param path: Path to write to
     :param data: Data
     """
-    f = open(path, 'w', encoding='utf-8')
-    json.dump(data, f)
-    f.close()
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump(data, f)
 
 
 def read_json_file(path):
@@ -20,8 +19,8 @@ def read_json_file(path):
     :param path: Path to read
     :return: Data
     """
-    f = open(path, 'r', encoding='utf-8')
-    data = json.load(f)
-    f.close()
+
+    with open(path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
 
     return data

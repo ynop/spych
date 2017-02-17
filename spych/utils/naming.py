@@ -1,3 +1,7 @@
+import random
+import string
+
+
 def index_name_if_in_list(name, name_list, suffix='', prefix=''):
     """
     Adds an index to the given name if it already exists in the given list.
@@ -16,3 +20,19 @@ def index_name_if_in_list(name, name_list, suffix='', prefix=''):
         index+= 1
 
     return new_name
+
+
+def generate_name(length=15, not_in=None):
+    """
+    Generates a random string of lowercase letters with the given length.
+
+    :param length: Length of the string to output.
+    :param not_in: Only return a string not in the given iterator.
+    :return:
+    """
+    value = ''.join(random.choice(string.ascii_lowercase) for i in range(length))
+
+    while (not_in is not None) and (value in not_in):
+        value = ''.join(random.choice(string.ascii_lowercase) for i in range(length))
+
+    return value
