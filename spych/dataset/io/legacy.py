@@ -61,28 +61,27 @@ class LegacySpychDatasetLoader(base.DatasetLoader):
     def type(self):
         return 'legacy_spych'
 
-    #
-    #  Load
-    #
-
-    def _load(self, loading_dataset):
-        self._check_for_necessary_files_in_path(loading_dataset.path)
-
-        self._load_wavs(loading_dataset)
-        self._load_utterances(loading_dataset)
-        self._load_transcriptions(loading_dataset)
-        self._load_speakers(loading_dataset)
-
-        return loading_dataset
-
-    def _check_for_necessary_files_in_path(self, path):
+    def is_valid_folder(self, path):
         necessary_files = [WAV_FILE_NAME, SEGMENTS_FILE_NAME]
+        missing_files = []
 
         for file_name in necessary_files:
             file_path = os.path.join(path, file_name)
 
             if not os.path.isfile(file_path):
-                raise IOError('Invalid dataset: file not found {}'.format(file_name))
+                missing_files.append(file_name)
+
+        return missing_files or None
+
+    #
+    #  Load
+    #
+
+    def _load(self, loading_dataset):
+        self._load_wavs(loading_dataset)
+        self._load_utterances(loading_dataset)
+        self._load_transcriptions(loading_dataset)
+        self._load_speakers(loading_dataset)
 
     def _load_wavs(self, loading_dataset):
         wav_path = os.path.join(loading_dataset, WAV_FILE_NAME)

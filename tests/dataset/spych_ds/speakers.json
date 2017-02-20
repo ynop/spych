@@ -1,0 +1,11 @@
+{
+  "speaker-1": {
+    "gender" : "m"
+  },
+  "speaker-2": {
+    "gender" : "f"
+  },
+  "speaker-3": {
+    "gender" : "m"
+  }
+}

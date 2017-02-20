@@ -7,13 +7,26 @@ class DatasetLoader(object):
     """
 
     def type(self):
-        """ Returns the dataset type (e.g. tuda, spych, TIMIT) of this loader. """
+        """ Return the dataset type (e.g. tuda, spych, TIMIT) of this loader. """
         return 'None'
 
+    def check_for_missing_files(self, path):
+        """ Return a list of necessary files for the current type of dataset that are missing in the given folder. None if path seems valid. """
+        return None
+
     def load(self, path):
-        """ Loads a dataset from the given path. Creates empty dataset and calls subclass loader. """
-        loading_dataset = dataset.Dataset(path, loader_type=self)
-        return self._load(loading_dataset)
+        """ Load a dataset from the given path. Creates empty dataset and calls subclass loader. """
+
+        missing_files = self.check_for_missing_files(path)
+
+        if missing_files is not None:
+            raise IOError('Invalid dataset of type {}: files not found {}'.format(self.type(), ' '.join(missing_files)))
+
+        loading_dataset = dataset.Dataset(path, loader=self)
+
+        self._load(loading_dataset)
+
+        return loading_dataset
 
     def _load(self, dataset):
         """ Effectively loads the dataset. Override in subclass. """

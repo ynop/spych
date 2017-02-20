@@ -11,6 +11,15 @@ from spych.utils import naming
 
 
 class Dataset(object):
+    """
+    Represents a audio dataset.
+
+    files: file-id -> file-obj
+    utterances: utterance-id -> utterance-obj
+    segmentations: utterance-id -> key -> segmentation-obj
+    speakers: speaker-id -> speaker-obj
+
+    """
     def __init__(self, path, loader=None):
         self.path = path
         self.loader = loader
@@ -247,7 +256,50 @@ class Dataset(object):
             segmentation_obj = segmentation.Segmentation.from_text(segments, utterance_idx=utterance_idx, key=key)
         elif type(segments) == list:
             segmentation_obj = segmentation.Segmentation(segments=segments, utterance_idx=utterance_idx, key=key)
+        else:
+            return None
 
         self.segmentations[utterance_idx][segmentation_obj.key] = segmentation_obj
 
         return segmentation_obj
+
+    #
+    #   DIV
+    #
+
+    def import_dataset(self, import_dataset, copy_files=False):
+        """
+        Merges the given dataset into this dataset.
+
+        :param dataset: Dataset to merge
+        :param copy_files: If True moves the wavs to this datasets folder.
+        """
+
+        file_idx_mapping = {}
+
+        for file_idx, file_to_import in import_dataset.files.items():
+            imported_file = self.add_file(file_to_import.path, file_idx=file_idx, copy_file=copy_files)
+            file_idx_mapping[file_idx] = imported_file.idx
+
+        speaker_idx_mapping = {}
+
+        for speaker_idx, speaker_to_import in import_dataset.speakers.items():
+            imported_speaker = self.add_speaker(speaker_idx=speaker_idx, gender=speaker_to_import.gender)
+            speaker_idx_mapping[speaker_idx] = imported_speaker.idx
+
+        utt_idx_mapping = {}
+
+        for utt_id, utterance_to_import in import_dataset.utterances.items():
+            import_file_idx = file_idx_mapping[utterance_to_import.file_idx]
+            import_speaker_idx = speaker_idx_mapping[utterance_to_import.speaker_idx]
+            imported_utterance = self.add_utterance(file_idx=import_file_idx,
+                                                    utterance_idx=utt_id,
+                                                    speaker_idx=import_speaker_idx,
+                                                    start=utterance_to_import.start,
+                                                    end=utterance_to_import.file_idx)
+            utt_idx_mapping[utt_id] = imported_utterance.idx
+
+        for utt_id, keys in import_dataset.segmentations.items():
+            for key, seg in keys.items():
+                import_utt_id = utt_idx_mapping[utt_id]
+                self.add_segmentation(import_utt_id, segments=seg.segments, key=key)
