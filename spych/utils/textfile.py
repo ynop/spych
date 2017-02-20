@@ -80,7 +80,7 @@ def write_separated_lines(path, values, separator=' ', sort_by_column=0):
 
         for key, value in items:
             if type(value) is list:
-                value = separator.join(value)
+                value = separator.join([str(x) for x in value])
 
             f.write('{}{}{}\n'.format(key, separator, value))
     elif type(values) is list:

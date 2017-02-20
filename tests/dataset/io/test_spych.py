@@ -7,11 +7,13 @@ from spych.dataset import dataset
 from spych.dataset import speaker
 from spych.dataset.io import spych
 
+from .. import resources
 
-class DatasetTest(unittest.TestCase):
+
+class SpychDatasetLoaderTest(unittest.TestCase):
     def setUp(self):
         self.loader = spych.SpychDatasetLoader()
-        self.test_path = os.path.join(os.path.dirname(__file__), '..', 'spych_ds')
+        self.test_path = resources.spych_dataset_path()
 
     def tearDown(self):
         pass
@@ -47,3 +49,18 @@ class DatasetTest(unittest.TestCase):
 
         self.assertEqual(3.5, loaded_dataset.segmentations['utt-4']['text'].segments[2].start)
         self.assertEqual(4.2, loaded_dataset.segmentations['utt-4']['text'].segments[2].end)
+
+    def test_save(self):
+        ds = resources.create_dataset()
+
+        path = tempfile.mkdtemp()
+
+        self.loader.save(ds, path)
+
+        self.assertIn('files.txt', os.listdir(path))
+        self.assertIn('utterances.txt', os.listdir(path))
+        self.assertIn('speakers.json', os.listdir(path))
+        self.assertIn('utt2spk.txt', os.listdir(path))
+        self.assertIn('segmentation_text.txt', os.listdir(path))
+
+        shutil.rmtree(path, ignore_errors=True)

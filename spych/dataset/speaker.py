@@ -61,3 +61,5 @@ class Speaker(object):
 
         if self.synthesis_effects is not None:
             speaker_info[SPEAKER_INFO_SYNTHESIZER_EFFECTS] = self.synthesis_effects
+
+        return speaker_info

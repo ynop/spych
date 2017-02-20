@@ -23,6 +23,9 @@ class Segmentation(object):
         else:
             self.key = key
 
+    def to_text(self):
+        return ' '.join([segment.value for segment in self.segments])
+
     @classmethod
     def from_text(cls, text, utterance_idx=None, key=TEXT_SEGMENTATION):
         """

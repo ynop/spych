@@ -118,4 +118,4 @@ class SpychDatasetLoader(base.DatasetLoader):
                     lines.append('{} {} {} {}'.format(utterance_idx, segment.start, segment.end, segment.value))
 
             with open(file_path, 'w', encoding='utf-8') as f:
-                f.write(' '.join(lines))
+                f.write('\n'.join(lines))
