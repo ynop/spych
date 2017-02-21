@@ -18,8 +18,10 @@ class Dataset(object):
     utterances: utterance-id -> utterance-obj
     segmentations: utterance-id -> key -> segmentation-obj
     speakers: speaker-id -> speaker-obj
+    subsets: subset-id -> list of utterance-id
 
     """
+
     def __init__(self, path, loader=None):
         self.path = path
         self.loader = loader
@@ -27,6 +29,7 @@ class Dataset(object):
         self.utterances = {}
         self.segmentations = collections.defaultdict(dict)
         self.speakers = {}
+        self.subsets = collections.defaultdict(list)
 
     @property
     def name(self):
@@ -37,7 +40,18 @@ class Dataset(object):
         return os.path.basename(self.path)
 
     #
-    #   File
+    #   Subset
+    #
+
+    def add_subset(self, name, utterances=[]):
+        """ Create a subset with the given utterance-idx's. """
+        if name in self.subsets.keys():
+            raise ValueError('Subset with name {} already existing.'.format(name))
+
+        self.subsets[name] = list(utterances)
+
+    #
+    # File
     #
 
     @property
@@ -303,3 +317,15 @@ class Dataset(object):
             for key, seg in keys.items():
                 import_utt_id = utt_idx_mapping[utt_id]
                 self.add_segmentation(import_utt_id, segments=seg.segments, key=key)
+
+        #
+        #   SUBSETS
+        #
+
+        def create_subset_with_utterances(utterances, target_path):
+            """ Create a subset with the given utterance-idx's at the given path. """
+            pass
+
+        def create_subset_with_speakers(speakers, target_path):
+            """ Create a subset with the given speaker-idx's at the given path. """
+            pass

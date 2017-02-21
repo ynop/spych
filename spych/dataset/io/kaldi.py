@@ -17,7 +17,7 @@ class SpychDatasetLoader(base.DatasetLoader):
     def type(self):
         return 'kaldi'
 
-    def is_valid_folder(self, path):
+    def check_for_missing_files(self, path):
         necessary_files = [WAV_FILE_NAME, TRANSCRIPTION_FILE_NAME]
         missing_files = []
 

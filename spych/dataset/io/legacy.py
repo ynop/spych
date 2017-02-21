@@ -61,7 +61,7 @@ class LegacySpychDatasetLoader(base.DatasetLoader):
     def type(self):
         return 'legacy_spych'
 
-    def is_valid_folder(self, path):
+    def check_for_missing_files(self, path):
         necessary_files = [WAV_FILE_NAME, SEGMENTS_FILE_NAME]
         missing_files = []
 
