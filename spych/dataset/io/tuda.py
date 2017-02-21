@@ -7,11 +7,12 @@ from spych.dataset import speaker
 from spych.dataset.io import base
 
 
-class LegacySpychDatasetLoader(base.DatasetLoader):
+class TudaDatasetLoader(base.DatasetLoader):
     """
     Loads german tuda corpus.
     """
 
+    @classmethod
     def type(self):
         return 'tuda'
 
@@ -85,5 +86,3 @@ class LegacySpychDatasetLoader(base.DatasetLoader):
 
         for utt_id, transcription in transcriptions_raw.items():
             loading_dataset.add_segmentation(utt_id, segments=transcription, key=segmentation.RAW_TEXT_SEGMENTATION)
-
-        loading_dataset.add_subset(part, utterances=segments.keys())

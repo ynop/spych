@@ -13,7 +13,8 @@ SPK2GENDER_FILE_NAME = 'spk2gender'
 TRANSCRIPTION_FILE_NAME = 'text'
 
 
-class SpychDatasetLoader(base.DatasetLoader):
+class KaldiDatasetLoader(base.DatasetLoader):
+    @classmethod
     def type(self):
         return 'kaldi'
 

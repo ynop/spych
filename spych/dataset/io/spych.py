@@ -16,6 +16,7 @@ SEG_FILE_PREFIX = 'segmentation'
 
 
 class SpychDatasetLoader(base.DatasetLoader):
+    @classmethod
     def type(self):
         return 'spych'
 
@@ -80,6 +81,8 @@ class SpychDatasetLoader(base.DatasetLoader):
                 dataset.add_segmentation(utterance_idx, segments=segments, key=key)
 
     def save(self, dataset, path):
+        os.makedirs(path, exist_ok=True)
+
         # Write files
         file_path = os.path.join(path, FILES_FILE_NAME)
         file_records = {file.idx: file.path for file in dataset.files.values()}

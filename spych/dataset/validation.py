@@ -3,6 +3,7 @@ import sndhdr
 import enum
 
 from spych.dataset import speaker
+from spych.dataset import segmentation
 from spych.audio import format as audio_format
 
 
@@ -23,7 +24,7 @@ class DatasetValidator(object):
     Class to validate a dataset.
     """
 
-    def __init__(self, metrics=[], expected_segmentations=[], expected_file_format=audio_format.AudioFileFormat.wav_mono_16bit_16k()):
+    def __init__(self, metrics=[], expected_segmentations=[segmentation.TEXT_SEGMENTATION], expected_file_format=audio_format.AudioFileFormat.wav_mono_16bit_16k()):
         self.metrics = list(metrics)
         self.file_format = expected_file_format
         self.segmentation_keys = list(expected_segmentations)
@@ -63,13 +64,32 @@ class DatasetValidator(object):
 
         return results
 
+    @classmethod
+    def full_validator(cls, expected_segmentations=[segmentation.TEXT_SEGMENTATION], expected_file_format=audio_format.AudioFileFormat.wav_mono_16bit_16k()):
+        """ Returns a validator, that checks all metrics. """
+        return cls(
+            metrics=[
+                ValidationMetric.FILE_MISSING,
+                ValidationMetric.FILE_INVALID_FORMAT,
+                ValidationMetric.FILE_ZERO_LENGTH,
+                ValidationMetric.FILE_NO_UTTERANCES,
+                ValidationMetric.UTTERANCE_NO_FILE_ID,
+                ValidationMetric.UTTERANCE_INVALID_START_END,
+                ValidationMetric.UTTERANCE_MISSING_SPEAKER,
+                ValidationMetric.SPEAKER_MISSING_GENDER,
+                ValidationMetric.SEGMENTATION_MISSING
+            ],
+            expected_segmentations=expected_segmentations,
+            expected_file_format=expected_file_format
+        )
+
     @staticmethod
-    def get_files_missing(self, dataset):
+    def get_files_missing(dataset):
         """ Return a list of file-idx's where the actual file is missing. """
         missing_wavs = []
 
         for file in dataset.files.values():
-            full_path = os.path.join(dataset.path, file.path)
+            full_path = os.path.abspath(os.path.join(dataset.path, file.path))
 
             if not os.path.isfile(full_path):
                 missing_wavs.append(file.idx)
@@ -77,12 +97,12 @@ class DatasetValidator(object):
         return missing_wavs
 
     @staticmethod
-    def get_files_empty(self, dataset):
+    def get_files_empty(dataset):
         """ Return a list of file-idx's that contain no data. """
         empty_wavs = []
 
         for file in dataset.files.values():
-            full_path = os.path.join(dataset.path, file.path)
+            full_path = os.path.abspath(os.path.join(dataset.path, file.path))
 
             if os.path.isfile(full_path):
                 result = sndhdr.what(full_path)
@@ -93,12 +113,12 @@ class DatasetValidator(object):
         return empty_wavs
 
     @staticmethod
-    def get_files_with_wrong_format(self, dataset, expected_format=audio_format.AudioFileFormat.wav_mono_16bit_16k()):
+    def get_files_with_wrong_format(dataset, expected_format=audio_format.AudioFileFormat.wav_mono_16bit_16k()):
         """ Return a list of file-idx's that don't conform the given audio format. """
         files_with_wrong_format = []
 
         for file in dataset.files.values():
-            full_path = os.path.join(dataset.path, file.path)
+            full_path = os.path.abspath(os.path.join(dataset.path, file.path))
 
             if os.path.isfile(full_path):
                 result = sndhdr.what(full_path)
@@ -109,7 +129,7 @@ class DatasetValidator(object):
         return files_with_wrong_format
 
     @staticmethod
-    def get_files_without_utterances(self, dataset):
+    def get_files_without_utterances(dataset):
         """ Return a list of file-idx's that don't reference any utterances.
         """
         files_with_utterances = set()
@@ -122,7 +142,7 @@ class DatasetValidator(object):
         return files_without_utterances
 
     @staticmethod
-    def get_utterances_with_missing_file_idx(self, dataset):
+    def get_utterances_with_missing_file_idx(dataset):
         """ Return a list of utterances that reference a wav-id that isn't existing. """
         utterances_with_missing_wav_id = []
 
@@ -130,10 +150,10 @@ class DatasetValidator(object):
             if utterance.file_idx not in dataset.files.keys():
                 utterances_with_missing_wav_id.append(utterance.idx)
 
-        return self.utterances_with_missing_wav_id
+        return utterances_with_missing_wav_id
 
     @staticmethod
-    def get_utterances_with_invalid_start_end(self, dataset):
+    def get_utterances_with_invalid_start_end(dataset):
         """
         Check if there are any utterances that have invalid start/end time.
 
@@ -162,7 +182,7 @@ class DatasetValidator(object):
         return utterances_with_invalid_start_end
 
     @staticmethod
-    def get_utterances_without_segmentation(self, dataset, keys=[]):
+    def get_utterances_without_segmentation(dataset, keys=[]):
         """ Return a list of utterance-idx's where no segmentation is available for the given keys. """
         if len(keys) <= 0:
             return []
@@ -180,7 +200,7 @@ class DatasetValidator(object):
         return missing_empty_transcriptions
 
     @staticmethod
-    def get_utterances_with_missing_speaker(self, dataset):
+    def get_utterances_with_missing_speaker(dataset):
         """ Return list without or invalid speaker. """
         missing_empty_speakers = []
 
@@ -191,7 +211,7 @@ class DatasetValidator(object):
         return missing_empty_speakers
 
     @staticmethod
-    def get_speakers_without_gender(self, dataset):
+    def get_speakers_without_gender(dataset):
         """ Return a list of speaker-idx's, where the gender is not defined. """
         missing_empty_genders = []
 

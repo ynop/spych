@@ -15,6 +15,12 @@ class Gender(enum.Enum):
 class Speaker(object):
     def __init__(self, idx, gender=None):
         self.idx = idx
+
+        if gender == 'm':
+            gender = Gender.MALE
+        elif gender == 'f':
+            gender = Gender.FEMALE
+
         self.gender = gender
 
         self.is_synthesized = False

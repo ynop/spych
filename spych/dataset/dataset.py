@@ -22,14 +22,19 @@ class Dataset(object):
 
     """
 
-    def __init__(self, path, loader=None):
+    def __init__(self, path=None, loader=None):
         self.path = path
-        self.loader = loader
+
+        if loader is None:
+            from spych.dataset.io import spych
+            self.loader = spych.SpychDatasetLoader()
+        else:
+            self.loader = loader
+
         self.files = {}
         self.utterances = {}
         self.segmentations = collections.defaultdict(dict)
         self.speakers = {}
-        self.subsets = collections.defaultdict(list)
 
     @property
     def name(self):
@@ -39,16 +44,39 @@ class Dataset(object):
         """
         return os.path.basename(self.path)
 
-    #
-    #   Subset
-    #
+    def save(self):
+        """ Save this dataset at the given path. """
 
-    def add_subset(self, name, utterances=[]):
-        """ Create a subset with the given utterance-idx's. """
-        if name in self.subsets.keys():
-            raise ValueError('Subset with name {} already existing.'.format(name))
+        if self.path is None:
+            raise ValueError('No path given to save the dataset.')
 
-        self.subsets[name] = list(utterances)
+        self.save_at(self.path)
+
+    def save_at(self, path, loader=None):
+        """
+        Save this dataset at the given path.
+
+        :param path: Path to save the dataset to.
+        :param loader: If you want to use another loader (e.g. to export to another format).
+        """
+
+        if loader is None:
+            self.loader.save(self, path)
+        else:
+            loader.save(self, path)
+
+    @classmethod
+    def load(cls, path, loader=None):
+        """ Loads the dataset from the given path, using the given loader. If no loader is given the spych loader is used. """
+
+        if loader is None:
+            from spych.dataset.io import spych
+            loader = spych.SpychDatasetLoader()
+        elif type(loader) == str:
+            from spych.dataset import io
+            loader = io.create_loader_of_type(loader)
+
+        return loader.load(path)
 
     #
     # File
@@ -74,6 +102,9 @@ class Dataset(object):
         :return: File object
         """
 
+        if copy_file and not os.path.isdir(self.path):
+            raise ValueError('No path defined for this dataset, cannot copy files.')
+
         if file_idx is None or file_idx in self.files.keys():
             final_file_idx = naming.generate_name(length=15, not_in=self.files.keys())
         else:
@@ -97,12 +128,12 @@ class Dataset(object):
 
         return file_obj
 
-    def remove_files(self, file_ids, remove_files=False):
+    def remove_files(self, file_ids, delete_files=False):
         """
         Deletes the given wavs.
 
         :param file_ids: List of file_idx's or fileobj's
-        :param remove_files: Also delete the files
+        :param delete_files: Also delete the files
         """
 
         for file_idx in file_ids:
@@ -111,7 +142,7 @@ class Dataset(object):
             else:
                 file_obj = self.files[file_idx]
 
-            if remove_files:
+            if delete_files:
                 path = os.path.join(self.path, file_obj.path)
                 if os.path.exists(path):
                     os.remove(path)
@@ -289,6 +320,9 @@ class Dataset(object):
         :param copy_files: If True moves the wavs to this datasets folder.
         """
 
+        if copy_files and not os.path.isdir(self.path):
+            raise ValueError('No path defined for this dataset, cannot copy files.')
+
         file_idx_mapping = {}
 
         for file_idx, file_to_import in import_dataset.files.items():
@@ -318,14 +352,14 @@ class Dataset(object):
                 import_utt_id = utt_idx_mapping[utt_id]
                 self.add_segmentation(import_utt_id, segments=seg.segments, key=key)
 
-        #
-        #   SUBSETS
-        #
+    #
+    #   SUBSETS
+    #
 
-        def create_subset_with_utterances(utterances, target_path):
-            """ Create a subset with the given utterance-idx's at the given path. """
-            pass
+    def create_subset_with_utterances(utterances, target_path):
+        """ Create a subset with the given utterance-idx's at the given path. """
+        pass
 
-        def create_subset_with_speakers(speakers, target_path):
-            """ Create a subset with the given speaker-idx's at the given path. """
-            pass
+    def create_subset_with_speakers(speakers, target_path):
+        """ Create a subset with the given speaker-idx's at the given path. """
+        pass

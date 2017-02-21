@@ -58,6 +58,7 @@ class LegacySpychDatasetLoader(base.DatasetLoader):
     }
     """
 
+    @classmethod
     def type(self):
         return 'legacy_spych'
 
