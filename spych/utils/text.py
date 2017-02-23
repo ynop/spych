@@ -6,6 +6,7 @@ def remove_punctuation(text, exceptions=[]):
     Removes the punctuation from a string.
 
     :param text: Text
+    :param exceptions: Symbols not to remove.
     :return: Text without punctuation.
     """
 

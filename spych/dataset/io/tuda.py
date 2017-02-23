@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 
 from spych.dataset import segmentation
 from spych.dataset import speaker
+from spych.dataset import subview
 from spych.dataset.io import base
 
 
@@ -52,10 +53,10 @@ class TudaDatasetLoader(base.DatasetLoader):
 
                     if os.path.exists(wav_path):
                         wavs[wav_id] = wav_path
-                        segments[utt_id] = [wav_id]
-                        transcriptions[utt_id] = transcription
+                        segments[utt_id] = wav_id
+                        transcriptions[utt_id] = str(transcription)
                         speakers[utt_id] = speakerid
-                        transcriptions_raw[utt_id] = transcription_raw
+                        transcriptions_raw[utt_id] = str(transcription_raw)
 
                         if gender == 'male':
                             genders[speakerid] = speaker.Gender.MALE
@@ -67,7 +68,7 @@ class TudaDatasetLoader(base.DatasetLoader):
             loading_dataset.add_file(wav_path, file_idx=wav_id, copy_file=False)
 
         # add speakers
-        for speaker_id in speakers.values():
+        for speaker_id in set(speakers.values()):
             gender = None
 
             if speaker_id in genders.keys():
@@ -82,7 +83,11 @@ class TudaDatasetLoader(base.DatasetLoader):
 
         # add transcriptions
         for utt_id, transcription in transcriptions.items():
-            loading_dataset.add_segmentation(utt_id, segments=transcription, key=segmentation.TEXT_SEGMENTATION)
+            r = loading_dataset.add_segmentation(utt_id, segments=transcription, key=segmentation.TEXT_SEGMENTATION)
 
         for utt_id, transcription in transcriptions_raw.items():
+            print(utt_id, transcription)
             loading_dataset.add_segmentation(utt_id, segments=transcription, key=segmentation.RAW_TEXT_SEGMENTATION)
+
+        part_subview = subview.Subview(filtered_utterances=set(segments.keys()))
+        loading_dataset.add_subview(part, part_subview)

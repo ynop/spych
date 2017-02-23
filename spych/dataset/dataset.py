@@ -35,6 +35,7 @@ class Dataset(object):
         self.utterances = {}
         self.segmentations = collections.defaultdict(dict)
         self.speakers = {}
+        self.subviews = {}
 
     @property
     def name(self):
@@ -77,6 +78,15 @@ class Dataset(object):
             loader = io.create_loader_of_type(loader)
 
         return loader.load(path)
+
+    #
+    #   Subview
+    #
+
+    def add_subview(self, name, subview):
+        """ Add the subview to this dataset. """
+        subview.dataset = self
+        self.subviews[name] = subview
 
     #
     # File
