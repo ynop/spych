@@ -46,7 +46,7 @@ class Dataset(object):
         return os.path.basename(self.path)
 
     def save(self):
-        """ Save this dataset at the given path. """
+        """ Save this dataset at the self.path. """
 
         if self.path is None:
             raise ValueError('No path given to save the dataset.')

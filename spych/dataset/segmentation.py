@@ -36,6 +36,6 @@ class Segmentation(object):
         :param key: A key which identifies this segmentation.
         :return: Segmentation object
         """
-        segments = [Segment(x) for x in text.strip().split(' ')]
+        segments = [Segment(x.strip()) for x in list(filter(lambda x: x.strip() != '', text.strip().split(' ')))]
 
         return cls(segments, utterance_idx=utterance_idx, key=key)

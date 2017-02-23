@@ -86,7 +86,6 @@ class TudaDatasetLoader(base.DatasetLoader):
             r = loading_dataset.add_segmentation(utt_id, segments=transcription, key=segmentation.TEXT_SEGMENTATION)
 
         for utt_id, transcription in transcriptions_raw.items():
-            print(utt_id, transcription)
             loading_dataset.add_segmentation(utt_id, segments=transcription, key=segmentation.RAW_TEXT_SEGMENTATION)
 
         part_subview = subview.Subview(filtered_utterances=set(segments.keys()))
