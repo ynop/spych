@@ -3,7 +3,7 @@ import uuid
 import shutil
 import collections
 
-from spych.data import dataset
+from spych.legacy.data import dataset
 from spych.utils import textfile
 from spych.utils import text
 

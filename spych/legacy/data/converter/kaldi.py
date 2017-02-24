@@ -1,7 +1,7 @@
 import os
 import shutil
 
-from spych.data import dataset
+from spych.legacy.data import dataset
 from spych.utils import textfile
 
 WAV_NAME = 'wav.scp'

@@ -1,7 +1,7 @@
 import os
 import sndhdr
 
-from spych.data import dataset
+from spych.legacy.data import dataset
 from spych.audio import format as audio_format
 
 

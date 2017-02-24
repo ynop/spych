@@ -3,7 +3,7 @@ import copy
 import collections
 import re
 
-from spych.data import dataset
+from spych.legacy.data import dataset
 from spych.utils import math
 
 

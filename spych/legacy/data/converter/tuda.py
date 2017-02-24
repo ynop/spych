@@ -2,7 +2,7 @@ import os
 
 from bs4 import BeautifulSoup
 
-from spych.data import dataset
+from spych.legacy.data import dataset
 
 
 class TudaConverter(object):

@@ -1,6 +1,6 @@
 import os
 
-from spych.data import dataset
+from spych.legacy.data import dataset
 from spych.synthesis import synthesizer
 from spych.synthesis import mary
 from spych.utils import jsonfile

@@ -1,5 +1,5 @@
-from spych.data import dataset
-from spych.data import dataset_validation
+from spych.legacy.data import dataset
+from spych.legacy.data import dataset_validation
 
 
 class DatasetFixer(object):

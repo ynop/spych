@@ -1,4 +1,5 @@
 from setuptools import setup
+from setuptools import find_packages
 
 with open('requirements.txt') as f:
     required = f.read().splitlines()
@@ -17,13 +18,13 @@ setup(name='spych',
       ],
       keywords='utterance kaldi lexicon asr voxforge fst srgs pronunciation speech recognition jsgf phone synthesis',
       license='MIT',
-      packages=['spych'],
+      packages=find_packages(),
       install_requires=required,
       include_package_data=True,
       zip_safe=False,
       test_suite='nose.collector',
       tests_require=['nose'],
       entry_points={
-          'console_scripts': ['spych=spych.cli.main:run', 'nspych=spych.ncli.main:run'],
+          'console_scripts': ['spych=spych.cli.main:run', 'spych-legacy=spych.legacy.cli.main:run'],
       }
       )

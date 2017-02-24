@@ -5,7 +5,7 @@ import os
 import shutil
 import tarfile
 
-from spych.data import dataset
+from spych.legacy.data import dataset
 from spych.utils import textfile
 
 
