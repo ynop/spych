@@ -127,6 +127,10 @@ Every subview can has multiple filter criteria:
 
 - filtered-utterances : A list of utterance-ids which are used in the subview.
 - filtered-speakers : A list of speaker-ids which are used in the subview.
+- utterance_idx_patterns : A list of reg-expressions to match used utterances.
+- speaker_idx_patterns : A list of reg-expressions to match used speakers.
+- utterance_idx_not_patterns : A list of reg-expressions to match not used utterances.
+- speaker_idx_not_patterns : A list of reg-expressions to match not used speakers.
 
 The subview just contains the items, that match all criteria. Every line in the file contains one filter criterion.
 
