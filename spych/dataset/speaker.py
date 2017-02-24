@@ -8,8 +8,8 @@ SPEAKER_INFO_SYNTHESIZER_TOOL = 'synthesizer_tool'
 
 
 class Gender(enum.Enum):
-    MALE = 1
-    FEMALE = 2
+    MALE = 'm'
+    FEMALE = 'f'
 
 
 class Speaker(object):

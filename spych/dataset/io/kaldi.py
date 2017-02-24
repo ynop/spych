@@ -87,7 +87,7 @@ class KaldiDatasetLoader(base.DatasetLoader):
                 elif gender == 'f':
                     spk.gender = speaker.Gender.FEMALE
 
-    def save(self, dataset, path):
+    def _save(self, dataset, path):
         # Write files
         file_path = os.path.join(path, WAV_FILE_NAME)
         file_records = {file.idx: file.path for file in dataset.files.values()}
@@ -105,7 +105,7 @@ class KaldiDatasetLoader(base.DatasetLoader):
 
         # Write speakers
         gender_path = os.path.join(path, SPK2GENDER_FILE_NAME)
-        speaker_data = {spk.idx: spk.gender for spk in dataset.speakers.values()}
+        speaker_data = {spk.idx: spk.gender.value for spk in dataset.speakers.values()}
         textfile.write_separated_lines(gender_path, speaker_data, separator=' ', sort_by_column=0)
 
         # Write segmentations

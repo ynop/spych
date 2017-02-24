@@ -1,3 +1,5 @@
+import os
+
 from spych.dataset import dataset
 
 
@@ -35,4 +37,14 @@ class DatasetLoader(object):
 
     def save(self, dataset, path):
         """ Saves the dataset at the given path. Override in subclass. """
+        if os.path.isfile(path):
+            raise ValueError('Target path {} is a file.'.format(path))
+
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        self._save(dataset, path)
+
+    def _save(self, dataset, path):
+        """ Effectively saves the dataset. Override in subclass. """
         raise NotImplementedError('Loader {} does not support saving datasets.'.format(self.type()))

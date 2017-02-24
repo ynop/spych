@@ -98,9 +98,7 @@ class SpychDatasetLoader(base.DatasetLoader):
         current_abs = os.path.abspath(os.path.join(current_base, rel_wav))
         return os.path.relpath(current_abs, target_base)
 
-    def save(self, dataset, path):
-        os.makedirs(path, exist_ok=True)
-
+    def _save(self, dataset, path):
         if dataset.path is None:
             base_path = os.getcwd()
         else:

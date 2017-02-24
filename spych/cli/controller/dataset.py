@@ -6,7 +6,14 @@ from spych.dataset import dataset
 from spych.dataset import io
 
 
-class DatasetController(controller.CementBaseController):
+def format_argument():
+    return dict(action='store',
+                help='Dataset format (spych [default], spych-legacy, kaldi, tuda)',
+                choices=['spych', 'spych-legacy', 'kaldi', 'tuda'],
+                default='spych')
+
+
+class MainController(controller.CementBaseController):
     class Meta:
         label = 'dataset'
         stacked_on = 'base'
@@ -16,10 +23,7 @@ class DatasetController(controller.CementBaseController):
         arguments = [
             (['path'], dict(action='store',
                             help='Path to the dataset (Folder).')),
-            (['--format'], dict(action='store',
-                                help='Dataset format (spych [default], spych-legacy, kaldi, tuda)',
-                                choices=['spych', 'spych-legacy', 'kaldi', 'tuda'],
-                                default='spych')),
+            (['--format'], format_argument()),
         ]
 
     @controller.expose(hide=True)
@@ -45,3 +49,29 @@ class DatasetController(controller.CementBaseController):
         loader = io.create_loader_of_type(self.app.pargs.format)
         dset = dataset.Dataset(self.app.pargs.path, loader=loader)
         dset.save()
+
+
+class CopyController(controller.CementBaseController):
+    class Meta:
+        label = 'dataset-copy'
+        stacked_on = 'base'
+        stacked_type = 'nested'
+        description = "Copy a dataset, convert from one format to another."
+
+        arguments = [
+            (['sourcepath'], dict(action='store',
+                                  help='Path to the folder of the source dataset.')),
+            (['targetpath'], dict(action='store',
+                                  help='Path to the folder to copy the dataset to.')),
+            (['-s', '--source-format'], format_argument()),
+            (['-t', '--target-format'], format_argument()),
+            (['--copy-files'], dict(action='store_true', help='Also copy the audio files to the target dataset.')),
+        ]
+
+    @controller.expose(hide=True)
+    def default(self):
+        source_loader = io.create_loader_of_type(self.app.pargs.source_format)
+        target_loader = io.create_loader_of_type(self.app.pargs.target_format)
+
+        source_ds = source_loader.load(self.app.pargs.sourcepath)
+        target_loader.save(source_ds, self.app.pargs.targetpath)

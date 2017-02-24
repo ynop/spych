@@ -8,7 +8,8 @@ class SpychApp(foundation.CementApp):
         label = 'spych'
         handlers = [
             base.BaseController,
-            dataset.DatasetController
+            dataset.MainController,
+            dataset.CopyController
         ]
 
         extensions = ['mustache']
