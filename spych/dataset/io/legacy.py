@@ -85,9 +85,9 @@ class LegacySpychDatasetLoader(base.DatasetLoader):
         self._load_speakers(loading_dataset)
 
     def _load_wavs(self, loading_dataset):
-        wav_path = os.path.join(loading_dataset, WAV_FILE_NAME)
+        wavs_file_path = os.path.join(loading_dataset.path, WAV_FILE_NAME)
 
-        for wav_id, wav_path in textfile.read_key_value_lines(wav_path):
+        for wav_id, wav_path in textfile.read_key_value_lines(wavs_file_path):
             loading_dataset.add_file(wav_path, file_idx=wav_id)
 
     def _load_utterances(self, loading_dataset):
