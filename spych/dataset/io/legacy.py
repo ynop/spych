@@ -87,12 +87,12 @@ class LegacySpychDatasetLoader(base.DatasetLoader):
     def _load_wavs(self, loading_dataset):
         wavs_file_path = os.path.join(loading_dataset.path, WAV_FILE_NAME)
 
-        for wav_id, wav_path in textfile.read_key_value_lines(wavs_file_path):
+        for wav_id, wav_path in textfile.read_key_value_lines(wavs_file_path).items():
             loading_dataset.add_file(wav_path, file_idx=wav_id)
 
     def _load_utterances(self, loading_dataset):
         utterances_path = os.path.join(loading_dataset.path, SEGMENTS_FILE_NAME)
-        for utt_id, utt_info in textfile.read_separated_lines_with_first_key(utterances_path, max_columns=4):
+        for utt_id, utt_info in textfile.read_separated_lines_with_first_key(utterances_path, max_columns=4).items():
             start = utterance.START_FULL_FILE
             end = utterance.END_FULL_FILE
 
@@ -109,11 +109,11 @@ class LegacySpychDatasetLoader(base.DatasetLoader):
         transcriptions_raw_path = os.path.join(loading_dataset.path, TRANSCRIPTION_RAW_FILE_NAME)
 
         if os.path.isfile(transcriptions_path):
-            for utt_id, transcription in textfile.read_key_value_lines(transcriptions_path):
+            for utt_id, transcription in textfile.read_key_value_lines(transcriptions_path).items():
                 loading_dataset.add_segmentation(utt_id, segments=transcription, key=segmentation.TEXT_SEGMENTATION)
 
         if os.path.isfile(transcriptions_raw_path):
-            for utt_id, transcription_raw in textfile.read_key_value_lines(transcriptions_raw_path):
+            for utt_id, transcription_raw in textfile.read_key_value_lines(transcriptions_raw_path).items():
                 loading_dataset.add_segmentation(utt_id, segments=transcription_raw, key=segmentation.RAW_TEXT_SEGMENTATION)
 
     def _load_speakers(self, loading_dataset):
@@ -121,10 +121,10 @@ class LegacySpychDatasetLoader(base.DatasetLoader):
         spk_info_path = os.path.join(loading_dataset.path, SPEAKER_INFO_FILE_NAME)
 
         if os.path.isfile(spk_info_path):
-            for spk_id, spk_info in jsonfile.read_json_file(spk_info_path):
+            for spk_id, spk_info in jsonfile.read_json_file(spk_info_path).items():
                 spk_obj = loading_dataset.add_speaker(speaker_idx=spk_id)
                 spk_obj.load_speaker_info_from_dict(spk_info)
 
         if os.path.isfile(utt2spk_path):
-            for utt_id, spk_id in textfile.read_key_value_lines(utt2spk_path):
+            for utt_id, spk_id in textfile.read_key_value_lines(utt2spk_path).items():
                 loading_dataset.utterances[utt_id].speaker_idx = spk_id
