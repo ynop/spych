@@ -1,51 +1,14 @@
 # SPYCH
 
-[http://spych.readthedocs.io/](http://spych.readthedocs.io/)
+Spych is a set of python tools for tasks related to automatic speech recognition. The most used functions are accessible via command line interface.
+Check [http://spych.readthedocs.io/](http://spych.readthedocs.io/) for the documentation.
 
-Spych is a set of tools for tasks related to automatic speech recognition.
+## Installation
 
-**Python Codebase**: All functions are usable with python.
+Python 3 is required.
 
-**CLI**: The most used functions are accessible via command line interface.
+To install latest development version:
 
-## Functionality
-
-* Dataset
-    * Custom format "spych format"
-    * Merging
-    * Splitting
-    * Validation
-    * Fix
-    * --> spych format
-        * TUDA
-        * SIWIS
-        * VOXFORGE
-    * spych format -->
-        * Kaldi
-* Lexicon
-    * Read/Write
-    * Merge
-    * Generate
-        * MaryTTS
-        * CMUDict
-* Grammar
-    * Parse
-        * JSGF
-    * Serialize
-        * SRGS
-        * (FST)
-* Synthesis
-    * Batch synthesizing with config file
-* Tools
-    * MaryTTS Client
-* Assets
-* Utils
-
-## Requirements
-
-Spych runs with **python3** and needs the following packages:
-
-   * modgrammar
-   * beautifulsoup4
-   * requests
-   * cement (for the CLI)
+```sh
+pip install git+https://github.com/ynop/spych.git
+```
