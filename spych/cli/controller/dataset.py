@@ -4,6 +4,7 @@ from cement.core import controller
 
 from spych.dataset import dataset
 from spych.dataset import io
+from spych.dataset import validation
 
 
 def format_argument():
@@ -24,6 +25,8 @@ class MainController(controller.CementBaseController):
             (['path'], dict(action='store',
                             help='Path to the dataset (Folder).')),
             (['--format'], format_argument()),
+            (['--detailed'], dict(action='store_true',
+                                  help='Show detailed validation results.')),
         ]
 
     @controller.expose(hide=True)
@@ -50,6 +53,28 @@ class MainController(controller.CementBaseController):
         dset = dataset.Dataset(self.app.pargs.path, loader=loader)
         dset.save()
 
+    @controller.expose(help="Validate a dataset.")
+    def validate(self):
+        dset = dataset.Dataset.load(self.app.pargs.path, loader=self.app.pargs.format)
+        validator = validation.DatasetValidator.full_validator()
+
+        result = validator.validate(dset)
+
+        info_data = {
+            "name": dset.name
+        }
+
+        for metric in validation.ValidationMetric:
+            info_data['num_{}'.format(metric.value)] = len(result[metric])
+
+        if self.app.pargs.detailed:
+            info_data["details"] = True
+
+            for metric in validation.ValidationMetric:
+                info_data[metric.value] = result[metric]
+
+        self.app.render(info_data, 'dataset_validation.mustache')
+
 
 class CopyController(controller.CementBaseController):
     class Meta:
@@ -63,6 +88,8 @@ class CopyController(controller.CementBaseController):
                                   help='Path to the folder of the source dataset.')),
             (['targetpath'], dict(action='store',
                                   help='Path to the folder to copy the dataset to.')),
+            (['-v', '--subview'], dict(action='store',
+                                       help='Only copy a specific subview.')),
             (['-s', '--source-format'], format_argument()),
             (['-t', '--target-format'], format_argument()),
             (['--copy-files'], dict(action='store_true', help='Also copy the audio files to the target dataset.')),
@@ -74,4 +101,9 @@ class CopyController(controller.CementBaseController):
         target_loader = io.create_loader_of_type(self.app.pargs.target_format)
 
         source_ds = source_loader.load(self.app.pargs.sourcepath)
-        target_loader.save(source_ds, self.app.pargs.targetpath)
+        copy_ds = source_ds
+
+        if self.app.pargs.subview is not None:
+            copy_ds = source_ds.export_subview(self.app.pargs.subview)
+
+        target_loader.save(copy_ds, self.app.pargs.targetpath, copy_files=self.app.pargs.copy_files)

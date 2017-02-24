@@ -86,27 +86,28 @@ class SpychDatasetLoader(base.DatasetLoader):
             file_name = os.path.basename(subview_file)
             sv_name = file_name[len('subview_'):len(file_name) - len('.txt')]
 
+            sv = subview.Subview()
+
             for key, value in textfile.read_separated_lines_with_first_key(subview_file, separator=' ').items():
                 if key == 'filtered_utt_ids':
-                    sv = subview.Subview(filtered_utterances=set(value))
-                    dataset.add_subview(sv_name, sv)
+                    sv.filtered_utterance_idxs = set(value)
                 elif key == 'filtered_speaker_ids':
-                    sv = subview.Subview(filtered_speakers=set(value))
-                    dataset.add_subview(sv_name, sv)
+                    sv.filtered_speaker_idxs = set(value)
+                elif key == 'utterance_idx_patterns':
+                    sv.utterance_idx_patterns = set(value)
+                elif key == 'speaker_idx_patterns':
+                    sv.speaker_idx_patterns = set(value)
+                elif key == 'utterance_idx_not_patterns':
+                    sv.utterance_idx_not_patterns = set(value)
+                elif key == 'speaker_idx_not_patterns':
+                    sv.speaker_idx_not_patterns = set(value)
 
-    def _wav_path(self, rel_wav, current_base, target_base):
-        current_abs = os.path.abspath(os.path.join(current_base, rel_wav))
-        return os.path.relpath(current_abs, target_base)
+            dataset.add_subview(sv_name, sv)
 
-    def _save(self, dataset, path):
-        if dataset.path is None:
-            base_path = os.getcwd()
-        else:
-            base_path = dataset.path
-
+    def _save(self, dataset, path, files):
         # Write files
         file_path = os.path.join(path, FILES_FILE_NAME)
-        file_records = {file.idx: self._wav_path(file.path, base_path, path) for file in dataset.files.values()}
+        file_records = files
         textfile.write_separated_lines(file_path, file_records, separator=' ', sort_by_column=0)
 
         # Write speakers
@@ -149,8 +150,12 @@ class SpychDatasetLoader(base.DatasetLoader):
             subview_path = os.path.join(path, 'subview_{}.txt'.format(name))
 
             data = {
-                'filtered_utt_ids': list(sv.filtered_utterance_idxs),
-                'filtered_speaker_ids': list(sv.filtered_speaker_idxs)
+                'filtered_utt_ids': sv.filtered_utterance_idxs,
+                'filtered_speaker_ids': sv.filtered_speaker_idxs,
+                'utterance_idx_patterns': sv.utterance_idx_patterns,
+                'speaker_idx_patterns' : sv.speaker_idx_patterns,
+                'utterance_idx_not_patterns' : sv.utterance_idx_not_patterns,
+                'speaker_idx_not_patterns' : sv.speaker_idx_not_patterns
             }
 
             textfile.write_separated_lines(subview_path, data, separator=' ')

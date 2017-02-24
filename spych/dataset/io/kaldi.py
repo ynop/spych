@@ -60,6 +60,8 @@ class KaldiDatasetLoader(base.DatasetLoader):
 
                 if utt_id in utt2spk.keys():
                     speaker_idx = utt2spk[utt_id]
+                    if speaker_idx not in dataset.speakers.keys():
+                        dataset.add_speaker(speaker_idx=speaker_idx)
 
                 dataset.add_utterance(utt_info[0], utterance_idx=utt_id, speaker_idx=speaker_idx, start=start, end=end)
         else:
@@ -68,6 +70,8 @@ class KaldiDatasetLoader(base.DatasetLoader):
 
                 if file_idx in utt2spk.keys():
                     speaker_idx = utt2spk[file_idx]
+                    if speaker_idx not in dataset.speakers.keys():
+                        dataset.add_speaker(speaker_idx=speaker_idx)
 
                 dataset.add_utterance(file_idx, utterance_idx=file_idx, speaker_idx=speaker_idx)
 
@@ -87,11 +91,10 @@ class KaldiDatasetLoader(base.DatasetLoader):
                 elif gender == 'f':
                     spk.gender = speaker.Gender.FEMALE
 
-    def _save(self, dataset, path):
+    def _save(self, dataset, path, files):
         # Write files
         file_path = os.path.join(path, WAV_FILE_NAME)
-        file_records = {file.idx: file.path for file in dataset.files.values()}
-        textfile.write_separated_lines(file_path, file_records, separator=' ', sort_by_column=0)
+        textfile.write_separated_lines(file_path, files, separator=' ', sort_by_column=0)
 
         # Write utterances
         utterance_path = os.path.join(path, SEGMENTS_FILE_NAME)

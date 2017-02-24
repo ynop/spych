@@ -83,7 +83,7 @@ def write_separated_lines(path, values, separator=' ', sort_by_column=0):
                 value = separator.join([str(x) for x in value])
 
             f.write('{}{}{}\n'.format(key, separator, value))
-    elif type(values) is list:
+    elif type(values) is list or type(values) is set:
         if 0 <= sort_by_column < len(values):
             items = sorted(values)
         else:

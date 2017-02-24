@@ -1,6 +1,7 @@
 import os
 import collections
 import shutil
+import copy
 
 from spych.dataset import file
 from spych.dataset import utterance
@@ -83,10 +84,27 @@ class Dataset(object):
     #   Subview
     #
 
+    @property
+    def num_subviews(self):
+        """ Return number of subviews. """
+        return len(self.subviews)
+
     def add_subview(self, name, subview):
         """ Add the subview to this dataset. """
         subview.dataset = self
         self.subviews[name] = subview
+
+    def export_subview(self, name):
+        """ Return a subview as a standalone dataset. """
+        sv = self.subviews[name]
+
+        exported_set = Dataset(path=self.path)
+        exported_set.files = copy.deepcopy(sv.files)
+        exported_set.utterances = copy.deepcopy(sv.utterances)
+        exported_set.speakers = copy.deepcopy(sv.speakers)
+        exported_set.segmentations = copy.deepcopy(sv.segmentations)
+
+        return exported_set
 
     #
     # File
@@ -131,7 +149,10 @@ class Dataset(object):
 
             shutil.copy(path, full_path)
         else:
-            final_file_path = os.path.relpath(path, self.path)
+            if os.path.isabs(path):
+                final_file_path = os.path.relpath(path, self.path)
+            else:
+                final_file_path = path
 
         file_obj = file.File(final_file_idx, final_file_path)
         self.files[final_file_idx] = file_obj
@@ -282,6 +303,16 @@ class Dataset(object):
     #
     #   Segmentation
     #
+
+    @property
+    def all_segmentation_keys(self):
+        """ Return a set of all occuring segmentation keys. """
+        keys = set()
+
+        for utt_idx, segmentations in self.segmentations.items():
+            keys.update(segmentations.keys())
+
+        return keys
 
     def all_segmentations_with_key(self, key):
         """ Return a set of all occurring segmentations with the given key. """

@@ -15,7 +15,7 @@ class SpychApp(foundation.CementApp):
         extensions = ['mustache']
 
         # Internal templates (ship with application code)
-        template_module = 'spych.ncli.templates'
+        template_module = 'spych.cli.templates'
 
         # default output handler
         output_handler = 'mustache'

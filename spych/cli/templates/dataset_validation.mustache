@@ -1,0 +1,65 @@
+-------------------------------------------------------------------------------------
+Dataset {{name}}:
+-------------------------------------------------------------------------------------
+
+Missing Files                           {{num_file_missing}}
+Empty Files                             {{num_file_zero_length}}
+Files with wrong format                 {{num_file_invalid_format}}
+Files without any utterances            {{num_file_no_utterance}}
+Utterances without File ID              {{num_utterance_no_file_id}}
+Utterances with invalid start/end time  {{num_utterance_invalid_start_end}}
+Missing or empty transcriptions         {{num_segmentation_missing}}
+Missing or empty speakers               {{num_utterance_missing_speaker}}
+Missing or empty genders                {{num_speaker_missing_gender}}
+
+{{#details}}
+-------------------------------------------------------------------------------------
+Details:
+-------------------------------------------------------------------------------------
+
+Missing Files:
+{{#file_missing}}
+    - {{.}}
+{{/file_missing}}
+
+Empty Files:
+{{#file_zero_length}}
+    - {{.}}
+{{/file_zero_length}}
+
+Files with wrong format:
+{{#file_invalid_format}}
+    - {{.}}
+{{/file_invalid_format}}
+
+Files without any utterances:
+{{#file_no_utterance}}
+    - {{.}}
+{{/file_no_utterance}}
+
+Utterances without File ID:
+{{#utterance_no_file_id}}
+    - {{.}}
+{{/utterance_no_file_id}}
+
+Utterances with invalid start/end time:
+{{#utterance_invalid_start_end}}
+    - {{.}}
+{{/utterance_invalid_start_end}}
+
+Missing segmentation:
+{{#segmentation_missing}}
+    - {{.}}
+{{/segmentation_missing}}
+
+Missing or empty speakers:
+{{#utterance_missing_speaker}}
+    - {{.}}
+{{/utterance_missing_speaker}}
+
+Missing or empty genders:
+{{#speaker_missing_gender}}
+    - {{.}}
+{{/speaker_missing_gender}}
+
+{{/details}}

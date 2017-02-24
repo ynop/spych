@@ -107,7 +107,7 @@ class DatasetValidator(object):
             if os.path.isfile(full_path):
                 result = sndhdr.what(full_path)
 
-                if result.nframes <= 0:
+                if result is None or result.nframes <= 0:
                     empty_wavs.append(file.idx)
 
         return empty_wavs

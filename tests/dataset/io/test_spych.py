@@ -24,6 +24,9 @@ class SpychDatasetLoaderTest(unittest.TestCase):
         self.assertEqual(4, loaded_dataset.num_files)
         self.assertEqual(5, loaded_dataset.num_utterances)
         self.assertEqual(3, loaded_dataset.num_speakers)
+        self.assertEqual(2, loaded_dataset.num_subviews)
+
+        self.assertEqual('wav_1.wav', loaded_dataset.files['file-1'].path)
 
         self.assertIn('utt-4', loaded_dataset.utterances.keys())
 
@@ -49,6 +52,22 @@ class SpychDatasetLoaderTest(unittest.TestCase):
 
         self.assertEqual(3.5, loaded_dataset.segmentations['utt-4']['text'].segments[2].start)
         self.assertEqual(4.2, loaded_dataset.segmentations['utt-4']['text'].segments[2].end)
+
+        self.assertIn('train', loaded_dataset.subviews.keys())
+
+        view = loaded_dataset.subviews['train']
+
+        self.assertSetEqual(set(['file-2', 'file-3']), set(view.files.keys()))
+        self.assertSetEqual(set(['utt-2', 'utt-4']), set(view.utterances.keys()))
+        self.assertSetEqual(set(['speaker-1', 'speaker-2']), set(view.speakers.keys()))
+
+        self.assertIn('train_3', loaded_dataset.subviews.keys())
+
+        view = loaded_dataset.subviews['train_3']
+
+        self.assertSetEqual(set(['file-3']), set(view.files.keys()))
+        self.assertSetEqual(set(['utt-4']), set(view.utterances.keys()))
+        self.assertSetEqual(set(['speaker-2']), set(view.speakers.keys()))
 
     def test_save(self):
         ds = resources.create_dataset()

@@ -4,6 +4,7 @@ import shutil
 import os
 
 from spych.dataset import dataset
+from spych.dataset import subview
 
 from . import resources
 
@@ -17,6 +18,19 @@ class DatasetTest(unittest.TestCase):
 
     def test_name(self):
         self.assertEqual(os.path.basename(self.dataset.path), self.dataset.name)
+
+    #
+    #   Subview
+    #
+    def test_export_subview(self):
+        filtered_utts = set(['utt-2', 'utt-4'])
+        self.dataset.add_subview('test', subview.Subview(filtered_utterances=filtered_utts))
+
+        exp_set = self.dataset.export_subview('test')
+
+        self.assertSetEqual(set(['wav_2', 'wav_3']), set(exp_set.files.keys()))
+        self.assertSetEqual(filtered_utts, set(exp_set.utterances.keys()))
+        self.assertSetEqual(set([self.dataset.utterances['utt-2'].speaker_idx, 'spk-2']), set(exp_set.speakers.keys()))
 
     #
     #   File
