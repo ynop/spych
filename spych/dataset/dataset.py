@@ -388,7 +388,7 @@ class Dataset(object):
                                                     utterance_idx=utt_id,
                                                     speaker_idx=import_speaker_idx,
                                                     start=utterance_to_import.start,
-                                                    end=utterance_to_import.file_idx)
+                                                    end=utterance_to_import.end)
             utt_idx_mapping[utt_id] = imported_utterance.idx
 
         for utt_id, keys in import_dataset.segmentations.items():

@@ -138,6 +138,14 @@ class DatasetTest(unittest.TestCase):
 
     def test_import_dataset(self):
         imp_dataset = resources.create_dataset()
+        utt4 = imp_dataset.utterances['utt-4']
+        utt4.idx = 'utt-4-imp'
+
+        imp_dataset.utterances[utt4.idx] = utt4
+        del imp_dataset.utterances['utt-4']
+
+        imp_dataset.segmentations[utt4.idx] = imp_dataset.segmentations['utt-4']
+        del imp_dataset.segmentations['utt-4']
 
         self.dataset.import_dataset(imp_dataset, copy_files=True)
 
@@ -147,5 +155,10 @@ class DatasetTest(unittest.TestCase):
         self.assertEqual(10, len(self.dataset.segmentations))
 
         self.assertEqual(4, len(os.listdir(self.dataset.path)))
+
+        self.assertIn('utt-4-imp', self.dataset.utterances)
+        self.assertEqual('utt-4-imp', self.dataset.utterances['utt-4-imp'].idx)
+        self.assertEqual(15, self.dataset.utterances['utt-4-imp'].start)
+        self.assertEqual(25, self.dataset.utterances['utt-4-imp'].end)
 
         shutil.rmtree(imp_dataset.path, ignore_errors=True)
