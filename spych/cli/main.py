@@ -2,6 +2,8 @@ from cement.core import foundation
 
 from spych.cli.controller import base
 from spych.cli.controller import dataset
+from spych.cli.controller import wav
+from spych.cli.controller import lexicon
 
 
 class SpychApp(foundation.CementApp):
@@ -11,7 +13,12 @@ class SpychApp(foundation.CementApp):
             base.BaseController,
             dataset.MainController,
             dataset.CopyController,
-            dataset.MergeController
+            dataset.MergeController,
+            wav.MainController,
+            wav.AddNoiseController,
+            wav.SNREstimationController,
+            wav.SegmentExtractionController,
+            lexicon.MainController
         ]
 
         extensions = ['mustache']
