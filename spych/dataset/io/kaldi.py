@@ -6,7 +6,7 @@ from spych.dataset import segmentation
 
 from spych.utils import textfile
 
-WAV_FILE_NAME = 'wavs.scp'
+WAV_FILE_NAME = 'wav.scp'
 SEGMENTS_FILE_NAME = 'segments'
 UTT2SPK_FILE_NAME = 'utt2spk'
 SPK2GENDER_FILE_NAME = 'spk2gender'
