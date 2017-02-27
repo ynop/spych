@@ -92,9 +92,11 @@ class KaldiDatasetLoader(base.DatasetLoader):
                     spk.gender = speaker.Gender.FEMALE
 
     def _save(self, dataset, path, files):
+        kaldi_files = {idx: os.path.abspath(os.path.join(path, filepath)) for idx, filepath in files.items()}
+
         # Write files
         file_path = os.path.join(path, WAV_FILE_NAME)
-        textfile.write_separated_lines(file_path, files, separator=' ', sort_by_column=0)
+        textfile.write_separated_lines(file_path, kaldi_files, separator=' ', sort_by_column=0)
 
         # Write utterances
         utterance_path = os.path.join(path, SEGMENTS_FILE_NAME)
