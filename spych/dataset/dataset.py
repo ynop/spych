@@ -370,7 +370,7 @@ class Dataset(object):
         file_idx_mapping = {}
 
         for file_idx, file_to_import in import_dataset.files.items():
-            imported_file = self.add_file(file_to_import.path, file_idx=file_idx, copy_file=copy_files)
+            imported_file = self.add_file(os.path.join(import_dataset.path, file_to_import.path), file_idx=file_idx, copy_file=copy_files)
             file_idx_mapping[file_idx] = imported_file.idx
 
         speaker_idx_mapping = {}
