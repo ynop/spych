@@ -3,13 +3,15 @@ from cement.core import foundation
 from spych.cli.controller import base
 from spych.cli.controller import dataset
 
+
 class SpychApp(foundation.CementApp):
     class Meta:
         label = 'spych'
         handlers = [
             base.BaseController,
             dataset.MainController,
-            dataset.CopyController
+            dataset.CopyController,
+            dataset.MergeController
         ]
 
         extensions = ['mustache']

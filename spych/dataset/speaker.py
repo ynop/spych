@@ -5,6 +5,7 @@ SPEAKER_INFO_SYNTHESIZED = 'synthesized'
 SPEAKER_INFO_SYNTHESIZER_VOICE = 'synthesizer_voice'
 SPEAKER_INFO_SYNTHESIZER_EFFECTS = 'synthesizer_effects'
 SPEAKER_INFO_SYNTHESIZER_TOOL = 'synthesizer_tool'
+SPEAKER_INFO_PART_FROM = 'part_from_speaker'
 
 
 class Gender(enum.Enum):
@@ -27,6 +28,7 @@ class Speaker(object):
         self.synthesis_voice = None
         self.synthesis_effects = None
         self.synthesis_tool = None
+        self.part_from_speaker = None
 
     def load_speaker_info_from_dict(self, speaker_info):
         if SPEAKER_INFO_GENDER in speaker_info.keys():
@@ -49,6 +51,9 @@ class Speaker(object):
         if SPEAKER_INFO_SYNTHESIZER_TOOL in speaker_info.keys():
             self.synthesis_tool = speaker_info[SPEAKER_INFO_SYNTHESIZER_TOOL]
 
+        if SPEAKER_INFO_PART_FROM in speaker_info.keys():
+            self.part_from_speaker = speaker_info[SPEAKER_INFO_PART_FROM]
+
     def get_speaker_info_dict(self):
         speaker_info = {}
 
@@ -67,5 +72,8 @@ class Speaker(object):
 
         if self.synthesis_effects is not None:
             speaker_info[SPEAKER_INFO_SYNTHESIZER_EFFECTS] = self.synthesis_effects
+
+        if self.part_from_speaker is not None:
+            speaker_info[SPEAKER_INFO_PART_FROM] = self.part_from_speaker
 
         return speaker_info

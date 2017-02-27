@@ -2,11 +2,14 @@ import os
 import collections
 import shutil
 import copy
+import random
 
 from spych.dataset import file
 from spych.dataset import utterance
 from spych.dataset import speaker
 from spych.dataset import segmentation
+
+from spych.audio import signal
 
 from spych.utils import naming
 
@@ -394,13 +397,94 @@ class Dataset(object):
                 self.add_segmentation(import_utt_id, segments=seg.segments, key=key)
 
     #
-    #   SUBSETS
+    #   MODIFICATIONS
     #
 
-    def create_subset_with_utterances(utterances, target_path):
-        """ Create a subset with the given utterance-idx's at the given path. """
-        pass
+    def subdivide_speakers(self, target_number_of_speakers):
+        """
+        Divide the available speakers in the dataset into different speakers so the number of speakers is target_number_of_speakers.
 
-    def create_subset_with_speakers(speakers, target_path):
-        """ Create a subset with the given speaker-idx's at the given path. """
-        pass
+        :param target_number_of_speakers: Target number of speakers
+        """
+
+        if self.num_speakers >= target_number_of_speakers:
+            print("Number of speakers already greater or equal to {}.".format(target_number_of_speakers))
+            return
+
+        spk2utt = self.speaker_to_utterance_dict()
+        spk2utt_count = {speaker_id: len(utterances) for speaker_id, utterances in spk2utt.items()}
+
+        utt_count = sum(spk2utt_count.values())
+
+        target_num_utts_per_speaker = int(utt_count / target_number_of_speakers)
+
+        # at least one part per speaker
+        spk2num_parts = {speaker_id: 1 for speaker_id, utt_count in spk2utt_count.items()}
+        spk2utt_count_intermediate = {speaker_id: utt_count - target_num_utts_per_speaker for speaker_id, utt_count in spk2utt_count.items()}
+
+        num_assigned_parts = len(spk2num_parts)
+
+        for i in range(num_assigned_parts, target_number_of_speakers):
+            sorted_spk2utt_count = sorted(spk2utt_count_intermediate.items(), key=lambda t: t[1], reverse=True)
+            spk2utt_count_intermediate[sorted_spk2utt_count[0][0]] -= target_num_utts_per_speaker
+            spk2num_parts[sorted_spk2utt_count[0][0]] += 1
+
+        for speaker_id, num_parts in spk2num_parts.items():
+            num_utts = spk2utt_count[speaker_id]
+            num_utts_per_part = int(num_utts / num_parts)
+            num_utts_rest = num_utts % num_parts
+
+            start_index = 0
+            shuffled_utt_ids = list(spk2utt[speaker_id])
+            random.shuffle(shuffled_utt_ids)
+
+            for i in range(num_parts):
+                num_utts_new = num_utts_per_part
+
+                if num_utts_rest > 0:
+                    num_utts_new += 1
+                    num_utts_rest -= 1
+
+                if i > 0:
+                    new_speaker_id = naming.generate_name(15, not_in=self.speakers.keys())
+                    new_speaker = self.add_speaker(new_speaker_id)
+                    new_speaker.load_speaker_info_from_dict(self.speakers[speaker_id].get_speaker_info_dict())
+                    new_speaker.part_from_speaker = speaker_id
+
+                    part_utt_ids = shuffled_utt_ids[start_index:start_index + num_utts_new]
+
+                    for utt_id in part_utt_ids:
+                        if utt_id.starts_with(speaker_id):
+                            changed_utt_id = utt_id.replace(speaker_id, new_speaker_id)
+                        else:
+                            changed_utt_id = naming.generate_name(15, not_in=self.utterances.keys())
+
+                        self.utterances[changed_utt_id] = self.utterances[utt_id]
+                        self.utterances[changed_utt_id].idx = changed_utt_id
+
+                        del self.utterances[utt_id]
+
+                        self.segmentations[changed_utt_id] = self.segmentations[utt_id]
+
+                        for key, seg in self.segmentations[changed_utt_id].items():
+                            seg.utterance_idx = changed_utt_id
+
+                        del self.segmentations[utt_id]
+
+                start_index += num_utts_new
+
+    def add_random_noise(self, snr=None, snr_range=None):
+        """
+        Adds generated noise to all files in the dataset with the given SNR.
+
+        :param snr: Signal-to-Noise-Ratio [dB]
+        :param snr_range: Uses a random Signal-to-Noise-Ratio [dB] in the given range (start,end)
+        """
+        for file in self.files.values():
+            used_snr = snr
+
+            if snr_range is not None:
+                used_snr = random.randint(snr_range[0], snr_range[1])
+
+            full_path = os.path.abspath(os.path.join(self.path, file.path))
+            signal.add_random_noise_to_wav(full_path, full_path, snr=used_snr)

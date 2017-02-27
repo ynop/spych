@@ -20,6 +20,14 @@ class DatasetRectifier(object):
         self.tasks = list(tasks)
         self.file_format = expected_file_format
 
+    @classmethod
+    def full_rectifier(cls, expected_file_format=audio_format.AudioFileFormat.wav_mono_16bit_16k()):
+        return cls(tasks=[RectificationTask.REMOVE_MISSING_FILES,
+                          RectificationTask.REMOVE_FILES_WITH_WRONG_FORMAT,
+                          RectificationTask.REMOVE_ZERO_LENGTH_FILES,
+                          RectificationTask.REMOVE_UTTERANCES_WITHOUT_FILE_ID],
+                   expected_file_format=expected_file_format)
+
     def rectify(self, dataset):
         if RectificationTask.REMOVE_MISSING_FILES in self.tasks:
             DatasetRectifier.remove_files_missing(dataset)
