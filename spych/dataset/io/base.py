@@ -24,7 +24,7 @@ class DatasetLoader(object):
         missing_files = self.check_for_missing_files(path)
 
         if missing_files is not None:
-            raise IOError('Invalid dataset of type {}: files not found {}'.format(self.type(), ' '.join(missing_files)))
+            raise IOError('Invalid dataset of type {}: files {} not found at {}'.format(self.type(), ' '.join(missing_files), path))
 
         loading_dataset = dataset.Dataset(path, loader=self)
 
