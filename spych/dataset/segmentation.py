@@ -60,6 +60,7 @@ class Segmentation(object):
 
     def to_audacity(self, path):
         """ Return a list of segmentations from a ctm file"""
+
         ctm_content = ctm.read_file(path)
         audacity_segments = []
 

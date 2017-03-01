@@ -36,6 +36,8 @@ class ConvertSegmentsController(controller.CementBaseController):
         inputfile_path = self.app.pargs.infile
         outfile_path = self.app.pargs.outfile
 
+        os.makedirs(outfile_path,exist_ok=True)
+
         segmentations = segmentation.Segmentation.from_ctm(inputfile_path)
 
         for seg in segmentations:
