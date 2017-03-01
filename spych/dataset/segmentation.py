@@ -1,6 +1,8 @@
 TEXT_SEGMENTATION = 'text'
 RAW_TEXT_SEGMENTATION = 'raw_text'
 
+from spych.assets import ctm
+from spych.assets import audacity
 
 class Segment(object):
     __slots__ = ['value', 'start', 'end']
@@ -39,3 +41,29 @@ class Segmentation(object):
         segments = [Segment(x.strip()) for x in list(filter(lambda x: x.strip() != '', text.strip().split(' ')))]
 
         return cls(segments, utterance_idx=utterance_idx, key=key)
+
+    @classmethod
+    def from_ctm(cls,path):
+        """ Return a list of segmentations from a ctm file"""
+        ctm_content = ctm.read_file(path)
+        segmentations = []
+        for utt_id,info in ctm_content.items():
+            segmentation = Segmentation(utterance_idx=utt_id)
+            for segment_info in info:
+                start = segment_info[1]
+                duration = segment_info[2]
+                label = segment_info[3]
+                segment = Segment(label,start,start+duration)
+                segmentation.segments.append(segment)
+            segmentations.append(segmentation)
+        return segmentations
+
+    def to_audacity(self, path):
+        """ Return a list of segmentations from a ctm file"""
+        ctm_content = ctm.read_file(path)
+        audacity_segments = []
+
+        for segment in self.segments:
+            audacity_segments.append([segment.start,segment.end,segment.value])
+
+        audacity.write_label_file(path,audacity_segments)
