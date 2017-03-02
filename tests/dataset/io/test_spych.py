@@ -1,11 +1,10 @@
-import unittest
-import tempfile
-import shutil
 import os
+import shutil
+import tempfile
+import unittest
 
-from spych.dataset import dataset
-from spych.dataset import speaker
-from spych.dataset.io import spych
+from data.dataset.loader import spych
+from spych.data import speaker
 
 from .. import resources
 

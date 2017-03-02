@@ -2,10 +2,9 @@ import os
 
 from bs4 import BeautifulSoup
 
-from spych.dataset import segmentation
-from spych.dataset import speaker
-from spych.dataset import subview
-from spych.dataset.io import base
+from spych import data
+from spych.data import dataset
+from spych.data.dataset.loader import base
 
 
 class TudaDatasetLoader(base.DatasetLoader):
@@ -14,7 +13,7 @@ class TudaDatasetLoader(base.DatasetLoader):
     """
 
     @classmethod
-    def type(self):
+    def type(cls):
         return 'tuda'
 
     def check_for_missing_files(self, path):
@@ -59,9 +58,9 @@ class TudaDatasetLoader(base.DatasetLoader):
                         transcriptions_raw[utt_id] = str(transcription_raw)
 
                         if gender == 'male':
-                            genders[speakerid] = speaker.Gender.MALE
+                            genders[speakerid] = data.Gender.MALE
                         elif gender == 'female':
-                            genders[speakerid] = speaker.Gender.FEMALE
+                            genders[speakerid] = data.Gender.FEMALE
 
         # add wavs
         for wav_id, wav_path in wavs.items():
@@ -83,10 +82,10 @@ class TudaDatasetLoader(base.DatasetLoader):
 
         # add transcriptions
         for utt_id, transcription in transcriptions.items():
-            r = loading_dataset.add_segmentation(utt_id, segments=transcription, key=segmentation.TEXT_SEGMENTATION)
+            r = loading_dataset.add_segmentation(utt_id, segments=transcription, key=data.Segmentation.TEXT_SEGMENTATION)
 
         for utt_id, transcription in transcriptions_raw.items():
-            loading_dataset.add_segmentation(utt_id, segments=transcription, key=segmentation.RAW_TEXT_SEGMENTATION)
+            loading_dataset.add_segmentation(utt_id, segments=transcription, key=data.Segmentation.RAW_TEXT_SEGMENTATION)
 
-        part_subview = subview.Subview(filtered_utterances=set(segments.keys()))
+        part_subview = dataset.Subview(filtered_utterances=set(segments.keys()))
         loading_dataset.add_subview(part, part_subview)

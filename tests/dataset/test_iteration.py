@@ -1,6 +1,6 @@
 import unittest
 
-from spych.dataset import iteration
+from data.dataset import iteration
 
 from . import resources
 

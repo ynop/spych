@@ -1,10 +1,8 @@
-import unittest
-import tempfile
-import shutil
 import os
+import shutil
+import unittest
 
-from spych.dataset import dataset
-from spych.dataset import subview
+from data.dataset import subview
 
 from . import resources
 

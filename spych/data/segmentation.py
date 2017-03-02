@@ -1,7 +1,3 @@
-TEXT_SEGMENTATION = 'text'
-RAW_TEXT_SEGMENTATION = 'raw_text'
-
-
 class Segment(object):
     __slots__ = ['value', 'start', 'end']
 
@@ -14,12 +10,15 @@ class Segment(object):
 class Segmentation(object):
     __slots__ = ['segments', 'utterance_idx', 'key']
 
+    TEXT_SEGMENTATION = 'text'
+    RAW_TEXT_SEGMENTATION = 'raw_text'
+
     def __init__(self, segments=[], utterance_idx=None, key=TEXT_SEGMENTATION):
         self.segments = list(segments)
         self.utterance_idx = utterance_idx
 
         if key is None:
-            self.key = TEXT_SEGMENTATION
+            self.key = Segmentation.TEXT_SEGMENTATION
         else:
             self.key = key
 

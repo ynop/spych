@@ -2,12 +2,8 @@ import os
 
 from cement.core import controller
 
-from spych.dataset import dataset
-from spych.dataset import io
-from spych.dataset import validation
-from spych.dataset import rectification
-
-from spych.dataset.io import kaldi
+from spych.data import dataset
+from spych.data.dataset import loader
 
 
 def format_argument():
@@ -52,14 +48,14 @@ class MainController(controller.CementBaseController):
 
     @controller.expose(help="Create an empty dataset.")
     def new(self):
-        loader = io.create_loader_of_type(self.app.pargs.format)
-        dset = dataset.Dataset(self.app.pargs.path, loader=loader)
+        ds_loader = loader.create_loader_of_type(self.app.pargs.format)
+        dset = dataset.Dataset(self.app.pargs.path, loader=ds_loader)
         dset.save()
 
     @controller.expose(help="Validate a dataset.")
     def validate(self):
         dset = dataset.Dataset.load(self.app.pargs.path, loader=self.app.pargs.format)
-        validator = validation.DatasetValidator.full_validator()
+        validator = dataset.DatasetValidator.full_validator()
 
         result = validator.validate(dset)
 
@@ -67,11 +63,11 @@ class MainController(controller.CementBaseController):
             "name": dset.name
         }
 
-        for metric in validation.ValidationMetric:
-            if metric not in [validation.ValidationMetric.FEATURE_MISSING, validation.ValidationMetric.SEGMENTATION_MISSING]:
+        for metric in dataset.ValidationMetric:
+            if metric not in [dataset.ValidationMetric.FEATURE_MISSING, dataset.ValidationMetric.SEGMENTATION_MISSING]:
                 info_data['num_{}'.format(metric.value)] = len(result[metric])
 
-        for metric in [validation.ValidationMetric.FEATURE_MISSING, validation.ValidationMetric.SEGMENTATION_MISSING]:
+        for metric in [dataset.ValidationMetric.FEATURE_MISSING, dataset.ValidationMetric.SEGMENTATION_MISSING]:
             num_per_key = []
 
             for k, v in result[metric].items():
@@ -82,7 +78,7 @@ class MainController(controller.CementBaseController):
         if self.app.pargs.detailed:
             info_data["details"] = True
 
-            for metric in validation.ValidationMetric:
+            for metric in dataset.ValidationMetric:
                 info_data[metric.value] = result[metric]
 
         self.app.render(info_data, 'dataset_validation.mustache')
@@ -91,7 +87,7 @@ class MainController(controller.CementBaseController):
     def rectify(self):
         dset = dataset.Dataset.load(self.app.pargs.path, loader=self.app.pargs.format)
 
-        rectifier = rectification.DatasetRectifier.full_rectifier()
+        rectifier = dataset.Rectifier.full_rectifier()
         rectifier.rectify(dset)
 
         dset.save()
@@ -133,8 +129,8 @@ class CopyController(controller.CementBaseController):
 
     @controller.expose(hide=True)
     def default(self):
-        source_loader = io.create_loader_of_type(self.app.pargs.source_format)
-        target_loader = io.create_loader_of_type(self.app.pargs.target_format)
+        source_loader = loader.create_loader_of_type(self.app.pargs.source_format)
+        target_loader = loader.create_loader_of_type(self.app.pargs.target_format)
 
         source_ds = source_loader.load(self.app.pargs.sourcepath)
         copy_ds = source_ds
@@ -162,8 +158,8 @@ class MergeController(controller.CementBaseController):
 
     @controller.expose(hide=True)
     def default(self):
-        target_loader = io.create_loader_of_type(self.app.pargs.target_format)
-        merge_loader = io.create_loader_of_type(self.app.pargs.merge_format)
+        target_loader = loader.create_loader_of_type(self.app.pargs.target_format)
+        merge_loader = loader.create_loader_of_type(self.app.pargs.merge_format)
 
         target_set = target_loader.load(self.app.pargs.targetpath)
         merge_set = merge_loader.load(self.app.pargs.mergepath)
@@ -203,7 +199,7 @@ class ImportController(controller.CementBaseController):
         if feat_container_name not in dset.features.keys():
             dset.add_new_feature_container(feat_container_name, 'features_{}'.format(feat_container_name))
 
-        for index, (utterance_idx, feature_matrix) in enumerate(kaldi.KaldiDatasetLoader.feature_scp_generator(self.app.pargs.scp)):
+        for index, (utterance_idx, feature_matrix) in enumerate(loader.KaldiDatasetLoader.feature_scp_generator(self.app.pargs.scp)):
             dset.add_features(utterance_idx, feature_matrix, feat_container_name)
 
         dset.save()

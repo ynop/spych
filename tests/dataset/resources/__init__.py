@@ -2,7 +2,7 @@ import os
 import shutil
 import tempfile
 
-from spych.dataset import dataset
+from spych.data import dataset
 
 
 def spych_dataset_path():

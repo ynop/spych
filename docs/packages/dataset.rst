@@ -1,5 +1,5 @@
 Dataset
 =======
 
-.. autoclass:: spych.dataset.dataset.Dataset
+.. autoclass:: spych.dataset.Dataset
         :members:

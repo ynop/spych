@@ -1,11 +1,9 @@
 import os
 
-from spych.dataset import utterance
-from spych.dataset import segmentation
-from spych.dataset.io import base
-
-from spych.utils import textfile
+from ..loader import base
+from spych import data
 from spych.utils import jsonfile
+from spych.utils import textfile
 
 WAV_FILE_NAME = 'wavs.txt'
 SEGMENTS_FILE_NAME = 'utterances.txt'
@@ -59,7 +57,7 @@ class LegacySpychDatasetLoader(base.DatasetLoader):
     """
 
     @classmethod
-    def type(self):
+    def type(cls):
         return 'spych-legacy'
 
     def check_for_missing_files(self, path):
@@ -93,8 +91,8 @@ class LegacySpychDatasetLoader(base.DatasetLoader):
     def _load_utterances(self, loading_dataset):
         utterances_path = os.path.join(loading_dataset.path, SEGMENTS_FILE_NAME)
         for utt_id, utt_info in textfile.read_separated_lines_with_first_key(utterances_path, max_columns=4).items():
-            start = utterance.START_FULL_FILE
-            end = utterance.END_FULL_FILE
+            start = data.Utterance.START_FULL_FILE
+            end = data.Utterance.END_FULL_FILE
 
             if len(utt_info) > 1:
                 start = utt_info[1]
@@ -110,11 +108,11 @@ class LegacySpychDatasetLoader(base.DatasetLoader):
 
         if os.path.isfile(transcriptions_path):
             for utt_id, transcription in textfile.read_key_value_lines(transcriptions_path).items():
-                loading_dataset.add_segmentation(utt_id, segments=transcription, key=segmentation.TEXT_SEGMENTATION)
+                loading_dataset.add_segmentation(utt_id, segments=transcription, key=data.Segmentation.TEXT_SEGMENTATION)
 
         if os.path.isfile(transcriptions_raw_path):
             for utt_id, transcription_raw in textfile.read_key_value_lines(transcriptions_raw_path).items():
-                loading_dataset.add_segmentation(utt_id, segments=transcription_raw, key=segmentation.RAW_TEXT_SEGMENTATION)
+                loading_dataset.add_segmentation(utt_id, segments=transcription_raw, key=data.Segmentation.RAW_TEXT_SEGMENTATION)
 
     def _load_speakers(self, loading_dataset):
         utt2spk_path = os.path.join(loading_dataset.path, UTT2SPK_FILE_NAME)

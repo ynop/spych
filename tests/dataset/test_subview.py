@@ -1,9 +1,6 @@
 import unittest
-import shutil
-import os
 
-from spych.dataset import segmentation
-from spych.dataset import subview
+from data.dataset import subview
 
 from . import resources
 

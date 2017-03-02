@@ -1,17 +1,11 @@
-import os
 import collections
-import shutil
 import copy
+import os
 import random
+import shutil
 
-from spych.dataset import file
-from spych.dataset import utterance
-from spych.dataset import speaker
-from spych.dataset import segmentation
-from spych.dataset import features
-
+from spych import data
 from spych.audio import signal
-
 from spych.utils import naming
 
 
@@ -31,7 +25,7 @@ class Dataset(object):
         self.path = path
 
         if loader is None:
-            from spych.dataset.io import spych
+            from data.dataset.loader import spych
             self.loader = spych.SpychDatasetLoader()
         else:
             self.loader = loader
@@ -77,11 +71,11 @@ class Dataset(object):
         """ Loads the dataset from the given path, using the given loader. If no loader is given the spych loader is used. """
 
         if loader is None:
-            from spych.dataset.io import spych
-            loader = spych.SpychDatasetLoader()
+            from ..dataset import loader
+            loader = loader.SpychDatasetLoader()
         elif type(loader) == str:
-            from spych.dataset import io
-            loader = io.create_loader_of_type(loader)
+            from ..dataset import loader
+            loader = loader.create_loader_of_type(loader)
 
         return loader.load(path)
 
@@ -159,7 +153,7 @@ class Dataset(object):
             else:
                 final_file_path = path
 
-        file_obj = file.File(final_file_idx, final_file_path)
+        file_obj = data.File(final_file_idx, final_file_path)
         self.files[final_file_idx] = file_obj
 
         return file_obj
@@ -173,7 +167,7 @@ class Dataset(object):
         """
 
         for file_idx in file_ids:
-            if type(file_idx) == file.File:
+            if type(file_idx) == data.File:
                 file_obj = file_idx
             else:
                 file_obj = self.files[file_idx]
@@ -254,7 +248,7 @@ class Dataset(object):
         else:
             final_utterance_idx = utterance_idx
 
-        utt = utterance.Utterance(final_utterance_idx, file_idx, speaker_idx=speaker_idx, start=start, end=end)
+        utt = data.Utterance(final_utterance_idx, file_idx, speaker_idx=speaker_idx, start=start, end=end)
         self.utterances[final_utterance_idx] = utt
 
         return utt
@@ -266,7 +260,7 @@ class Dataset(object):
         :param utterance_ids: List of utterance ids
         """
         for utt_id in utterance_ids:
-            if type(utt_id) == utterance.Utterance:
+            if type(utt_id) == data.Utterance:
                 utt = utt_id
             else:
                 utt = self.utterances[utt_id]
@@ -300,7 +294,7 @@ class Dataset(object):
         else:
             final_speaker_idx = speaker_idx
 
-        spk = speaker.Speaker(final_speaker_idx, gender=gender)
+        spk = data.Speaker(final_speaker_idx, gender=gender)
         self.speakers[final_speaker_idx] = spk
 
         return spk
@@ -344,9 +338,9 @@ class Dataset(object):
             raise ValueError('Utterance with id {} does not exist!'.format(utterance_idx))
 
         if type(segments) == str:
-            segmentation_obj = segmentation.Segmentation.from_text(segments, utterance_idx=utterance_idx, key=key)
+            segmentation_obj = data.Segmentation.from_text(segments, utterance_idx=utterance_idx, key=key)
         elif type(segments) == list:
-            segmentation_obj = segmentation.Segmentation(segments=segments, utterance_idx=utterance_idx, key=key)
+            segmentation_obj = data.Segmentation(segments=segments, utterance_idx=utterance_idx, key=key)
         else:
             return None
 
@@ -370,7 +364,7 @@ class Dataset(object):
             final_feature_path = os.path.join(self.path, path)
 
         os.makedirs(final_feature_path, exist_ok=True)
-        self.features[name] = features.FeatureContainer(final_feature_path)
+        self.features[name] = data.FeatureContainer(final_feature_path)
 
     def add_features(self, utterance_idx, feature_matrix, feature_container):
         """
@@ -406,7 +400,7 @@ class Dataset(object):
         """
         Merges the given dataset into this dataset.
 
-        :param dataset: Dataset to merge
+        :param import_dataset: Dataset to merge
         :param copy_files: If True moves the wavs to this datasets folder.
         """
 

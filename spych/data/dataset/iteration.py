@@ -41,7 +41,7 @@ class BatchGenerator(object):
 
         for batch_utt_ids in self.generate_utterance_batches(batch_size):
 
-            batch_features = [[] for x in self.datasets]
+            batch_features = [[] for __ in self.datasets]
 
             for utt_id in batch_utt_ids:
 
@@ -49,7 +49,7 @@ class BatchGenerator(object):
                 per_set_features = [x.features[feature_name].load_features_of_utterance(utt_id) for x in self.datasets]
 
                 # clip features to the number of the smallest feature matrix
-                per_set_feature_lengths = [np.shape(x, 0) for x in per_set_features]
+                per_set_feature_lengths = [np.size(x, 0) for x in per_set_features]
                 min_feature_length = min(per_set_feature_lengths)
                 per_set_features_clipped = [x[:min_feature_length] for x in per_set_features]
 
@@ -79,8 +79,8 @@ class BatchGenerator(object):
         return utterances
 
     def _splice_feature_matrix(self, matrix, splice_size=0, splice_step=1, repeat_border_frames=True):
-        num_features = np.shape(matrix, 0)
-        feature_size = np.shape(matrix, 1)
+        num_features = np.size(matrix, 0)
+        feature_size = np.size(matrix, 1)
 
         num_splices = (num_features // splice_step) + 1
         spliced_feature_size = ((splice_size * 2) + 1) * feature_size

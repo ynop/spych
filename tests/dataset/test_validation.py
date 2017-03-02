@@ -1,16 +1,14 @@
-import unittest
 import shutil
-import os
+import unittest
 
-from spych.dataset import segmentation
-from spych.dataset import validation
+from data.dataset import validation
 
 from . import resources
 
 
 class DatasetTest(unittest.TestCase):
     def setUp(self):
-        self.validator = validation.DatasetValidator.full_validator()
+        self.validator = validation.Validator.full_validator()
 
     def test_validate(self):
         validation_dataset = resources.create_invalid_dataset()

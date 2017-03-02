@@ -4,8 +4,7 @@ import enum
 import collections
 import glob
 
-from spych.dataset import speaker
-from spych.dataset import segmentation
+from spych import data
 from spych.audio import format as audio_format
 
 
@@ -22,7 +21,7 @@ class ValidationMetric(enum.Enum):
     FEATURE_MISSING = 'feature_missing'
 
 
-class DatasetValidator(object):
+class Validator(object):
     """
     Class to validate a dataset.
     """
@@ -37,34 +36,34 @@ class DatasetValidator(object):
         results = {}
 
         if ValidationMetric.FILE_MISSING in self.metrics:
-            results[ValidationMetric.FILE_MISSING] = DatasetValidator.get_files_missing(dataset)
+            results[ValidationMetric.FILE_MISSING] = Validator.get_files_missing(dataset)
 
         if ValidationMetric.FILE_INVALID_FORMAT in self.metrics:
-            results[ValidationMetric.FILE_INVALID_FORMAT] = DatasetValidator.get_files_with_wrong_format(dataset, self.file_format)
+            results[ValidationMetric.FILE_INVALID_FORMAT] = Validator.get_files_with_wrong_format(dataset, self.file_format)
 
         if ValidationMetric.FILE_ZERO_LENGTH in self.metrics:
-            results[ValidationMetric.FILE_ZERO_LENGTH] = DatasetValidator.get_files_empty(dataset)
+            results[ValidationMetric.FILE_ZERO_LENGTH] = Validator.get_files_empty(dataset)
 
         if ValidationMetric.FILE_NO_UTTERANCES in self.metrics:
-            results[ValidationMetric.FILE_NO_UTTERANCES] = DatasetValidator.get_files_without_utterances(dataset)
+            results[ValidationMetric.FILE_NO_UTTERANCES] = Validator.get_files_without_utterances(dataset)
 
         if ValidationMetric.UTTERANCE_NO_FILE_ID in self.metrics:
-            results[ValidationMetric.UTTERANCE_NO_FILE_ID] = DatasetValidator.get_utterances_with_missing_file_idx(dataset)
+            results[ValidationMetric.UTTERANCE_NO_FILE_ID] = Validator.get_utterances_with_missing_file_idx(dataset)
 
         if ValidationMetric.UTTERANCE_INVALID_START_END in self.metrics:
-            results[ValidationMetric.UTTERANCE_INVALID_START_END] = DatasetValidator.get_utterances_with_invalid_start_end(dataset)
+            results[ValidationMetric.UTTERANCE_INVALID_START_END] = Validator.get_utterances_with_invalid_start_end(dataset)
 
         if ValidationMetric.UTTERANCE_MISSING_SPEAKER in self.metrics:
-            results[ValidationMetric.UTTERANCE_MISSING_SPEAKER] = DatasetValidator.get_utterances_with_missing_speaker(dataset)
+            results[ValidationMetric.UTTERANCE_MISSING_SPEAKER] = Validator.get_utterances_with_missing_speaker(dataset)
 
         if ValidationMetric.SEGMENTATION_MISSING in self.metrics:
-            results[ValidationMetric.SEGMENTATION_MISSING] = DatasetValidator.get_utterances_without_segmentation(dataset)
+            results[ValidationMetric.SEGMENTATION_MISSING] = Validator.get_utterances_without_segmentation(dataset)
 
         if ValidationMetric.SPEAKER_MISSING_GENDER in self.metrics:
-            results[ValidationMetric.SPEAKER_MISSING_GENDER] = DatasetValidator.get_speakers_without_gender(dataset)
+            results[ValidationMetric.SPEAKER_MISSING_GENDER] = Validator.get_speakers_without_gender(dataset)
 
         if ValidationMetric.FEATURE_MISSING in self.metrics:
-            results[ValidationMetric.FEATURE_MISSING] = DatasetValidator.get_features_with_missing_file(dataset)
+            results[ValidationMetric.FEATURE_MISSING] = Validator.get_features_with_missing_file(dataset)
 
         return results
 
@@ -196,7 +195,9 @@ class DatasetValidator(object):
             missing_empty_transcriptions[key] = []
 
             for utterance in dataset.utterances.values():
-                if utterance.idx not in dataset.segmentations.keys() or key not in dataset.segmentations[utterance.idx].keys() or len(dataset.segmentations[utterance.idx][key].segments) <= 0:
+                if utterance.idx not in dataset.segmentations.keys() or \
+                                key not in dataset.segmentations[utterance.idx].keys() or \
+                                len(dataset.segmentations[utterance.idx][key].segments) <= 0:
                     missing_empty_transcriptions[key].append(utterance.idx)
 
         return missing_empty_transcriptions
@@ -218,7 +219,7 @@ class DatasetValidator(object):
         missing_empty_genders = []
 
         for spk in dataset.speakers.values():
-            if spk.gender not in [speaker.Gender.MALE, speaker.Gender.FEMALE]:
+            if spk.gender not in [data.Gender.MALE, data.Gender.FEMALE]:
                 missing_empty_genders.append(spk.idx)
 
         return missing_empty_genders

@@ -1,7 +1,7 @@
 import os
 import shutil
 
-from spych.dataset import dataset
+from spych.data import dataset
 
 
 class DatasetLoader(object):

@@ -3,10 +3,9 @@ import struct
 
 import numpy as np
 
-from spych.dataset.io import base
-from spych.dataset import speaker
-from spych.dataset import segmentation
+from ..loader import base
 
+from spych import data
 from spych.utils import textfile
 
 WAV_FILE_NAME = 'wav.scp'
@@ -18,7 +17,7 @@ TRANSCRIPTION_FILE_NAME = 'text'
 
 class KaldiDatasetLoader(base.DatasetLoader):
     @classmethod
-    def type(self):
+    def type(cls):
         return 'kaldi'
 
     def check_for_missing_files(self, path):
@@ -90,9 +89,9 @@ class KaldiDatasetLoader(base.DatasetLoader):
                 spk = dataset.speakers[spk_id]
 
                 if gender == 'm':
-                    spk.gender = speaker.Gender.MALE
+                    spk.gender = data.Gender.MALE
                 elif gender == 'f':
-                    spk.gender = speaker.Gender.FEMALE
+                    spk.gender = data.Gender.FEMALE
 
     def _save(self, dataset, path, files, copy_files=False):
         kaldi_files = {idx: os.path.abspath(os.path.join(path, filepath)) for idx, filepath in files.items()}
@@ -120,8 +119,8 @@ class KaldiDatasetLoader(base.DatasetLoader):
         transcriptions = {}
 
         for utterance_idx, utt_segmentations in dataset.segmentations.items():
-            if segmentation.TEXT_SEGMENTATION in utt_segmentations.keys():
-                transcriptions[utterance_idx] = utt_segmentations[segmentation.TEXT_SEGMENTATION].to_text()
+            if data.Segmentation.TEXT_SEGMENTATION in utt_segmentations.keys():
+                transcriptions[utterance_idx] = utt_segmentations[data.Segmentation.TEXT_SEGMENTATION].to_text()
 
         text_path = os.path.join(path, TRANSCRIPTION_FILE_NAME)
         textfile.write_separated_lines(text_path, transcriptions, separator=' ', sort_by_column=0)
