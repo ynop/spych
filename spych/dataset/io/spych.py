@@ -182,6 +182,6 @@ class SpychDatasetLoader(base.DatasetLoader):
                 shutil.copytree(feature_container.path, target_abs_path)
                 feat_records[name] = rel_container_path
             else:
-                feat_records[name] = os.path.abspath(os.path.relpath(feature_container.path, path))
+                feat_records[name] = os.path.relpath(feature_container.path, path)
 
         textfile.write_separated_lines(feat_path, feat_records, separator=' ')
