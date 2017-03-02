@@ -175,11 +175,12 @@ class SpychDatasetLoader(base.DatasetLoader):
         feat_records = {}
 
         for name, feature_container in dataset.features.items():
+            rel_container_path = os.path.relpath(feature_container.path, dataset.path)
+
             if copy_files and not os.path.samefile(dataset.path, path):
-                rel_container_path = os.path.relpath(feature_container.path, dataset.path)
                 target_abs_path = os.path.abspath(os.path.join(path, rel_container_path))
                 shutil.copytree(feature_container.path, target_abs_path)
 
-                feat_records[name] = rel_container_path
+            feat_records[name] = rel_container_path
 
         textfile.write_separated_lines(feat_path, feat_records, separator=' ')
