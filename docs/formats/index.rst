@@ -145,6 +145,22 @@ Example:
     filtered_speaker_ids marc sam
     filtered_utt_ids 1_hello 2_this
 
+**features.txt**
+
+Contains a list of stored features. A dataset can have different feature containers. Every container contains the features of all utterances of a given type (e.g. MFCC features).
+A feature container is a folder on the filesystem, which contains one numpy file per utterance with it's feature matrix. Every line contains one container of features.
+
+.. code-block:: bash
+
+    <feature-name> <relative-path>
+
+Example:
+
+.. code-block:: bash
+
+    mfcc mfcc_features
+    fbank fbank_features
+
 Spych dataset legacy
 --------------------
 
