@@ -7,6 +7,8 @@ from spych.dataset import io
 from spych.dataset import validation
 from spych.dataset import rectification
 
+from spych.dataset.io import kaldi
+
 
 def format_argument():
     return dict(action='store',
@@ -66,7 +68,16 @@ class MainController(controller.CementBaseController):
         }
 
         for metric in validation.ValidationMetric:
-            info_data['num_{}'.format(metric.value)] = len(result[metric])
+            if metric not in [validation.ValidationMetric.FEATURE_MISSING, validation.ValidationMetric.SEGMENTATION_MISSING]:
+                info_data['num_{}'.format(metric.value)] = len(result[metric])
+
+        for metric in [validation.ValidationMetric.FEATURE_MISSING, validation.ValidationMetric.SEGMENTATION_MISSING]:
+            num_per_key = []
+
+            for k, v in result[metric].items():
+                num_per_key.append('{} : {}'.format(k, len(v)))
+
+            info_data['num_{}'.format(metric.value)] = ', '.join(num_per_key)
 
         if self.app.pargs.detailed:
             info_data["details"] = True
@@ -159,3 +170,42 @@ class MergeController(controller.CementBaseController):
 
         target_set.import_dataset(merge_set, copy_files=self.app.pargs.copy_files)
         target_set.save()
+
+
+class ImportController(controller.CementBaseController):
+    class Meta:
+        label = 'dataset-import'
+        stacked_on = 'base'
+        stacked_type = 'nested'
+        description = "Import data to the dataset (features)."
+
+        arguments = [
+            (['path'], dict(action='store', help='Path to the dataset to import data into.')),
+            (['-f', '--format'], format_argument()),
+            (['--scp'], dict(action='store', help='Path to an kaldi scp file (for importing features).')),
+            (['--feat-container'], dict(action='store', help='Name of the feature container to import features into.'))
+        ]
+
+    @controller.expose(hide=True)
+    def default(self):
+        self.app.args.print_help()
+
+    @controller.expose(help="Import features.")
+    def features(self):
+        feat_container_name = self.app.pargs.feat_container
+
+        if feat_container_name is None:
+            print('A feature container (name) has to be specified to import features into.')
+            return
+
+        dset = dataset.Dataset.load(self.app.pargs.path, loader=self.app.pargs.format)
+
+        if feat_container_name not in dset.features.keys():
+            dset.add_new_feature_container(feat_container_name, 'features_{}'.format(feat_container_name))
+
+        for index, (utterance_idx, feature_matrix) in enumerate(kaldi.KaldiDatasetLoader.feature_scp_generator(self.app.pargs.scp)):
+            dset.add_features(utterance_idx, feature_matrix, feat_container_name)
+
+        dset.save()
+
+        print('Imported {} feature-matrices into the dataset with {} utterances.'.format(index + 1, dset.num_utterances))

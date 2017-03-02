@@ -25,6 +25,6 @@ class DatasetTest(unittest.TestCase):
         self.assertListEqual(['utt-3'], result[validation.ValidationMetric.UTTERANCE_INVALID_START_END])
         self.assertListEqual(['utt-2'], result[validation.ValidationMetric.UTTERANCE_MISSING_SPEAKER])
         self.assertListEqual(['spk-3'], result[validation.ValidationMetric.SPEAKER_MISSING_GENDER])
-        self.assertListEqual(['utt-2'], result[validation.ValidationMetric.SEGMENTATION_MISSING])
+        self.assertListEqual(['utt-2'], result[validation.ValidationMetric.SEGMENTATION_MISSING]['text'])
 
         shutil.rmtree(validation_dataset.path, ignore_errors=True)

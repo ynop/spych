@@ -8,6 +8,7 @@ from spych.dataset import file
 from spych.dataset import utterance
 from spych.dataset import speaker
 from spych.dataset import segmentation
+from spych.dataset import features
 
 from spych.audio import signal
 
@@ -40,6 +41,7 @@ class Dataset(object):
         self.segmentations = collections.defaultdict(dict)
         self.speakers = {}
         self.subviews = {}
+        self.features = {}
 
     @property
     def name(self):
@@ -353,6 +355,50 @@ class Dataset(object):
         return segmentation_obj
 
     #
+    #   FEATURES
+    #
+
+    def add_new_feature_container(self, name, path):
+        """ Create a new feature container """
+
+        if name in self.features.keys():
+            raise ValueError('Feature container with name {} already exists.'.format(name))
+
+        if os.path.isabs(path):
+            final_feature_path = path
+        else:
+            final_feature_path = os.path.join(self.path, path)
+
+        os.makedirs(final_feature_path, exist_ok=True)
+        self.features[name] = features.FeatureContainer(final_feature_path)
+
+    def add_features(self, utterance_idx, feature_matrix, feature_container):
+        """
+        Adds the given features to the dataset. Features are stored directly to the filesystem, so this dataset has to have a path set.
+
+        :param utterance_idx: Utterance to which the features correspond.
+        :param feature_matrix: A numpy array containing the features.
+        :param feature_container: Name of the container to store the features in.
+        """
+
+        if feature_container not in self.features.keys():
+            raise ValueError('No feature container with name {} exists.'.format(feature_container))
+
+        if utterance_idx is None or utterance_idx.strip() == '':
+            raise ValueError('No utterance id given. The features have to be associated with an utterance!')
+
+        if utterance_idx not in self.utterances.keys():
+            raise ValueError('Utterance with id {} does not exist!'.format(utterance_idx))
+
+        self.features[feature_container].add_features_for_utterance(utterance_idx, feature_matrix)
+
+    def get_features(self, utterance_idx, feature_container):
+        """ Return the features (np array) for the given utterance of the given container. """
+
+        if feature_container in self.features.keys():
+            return self.features[feature_container].load_features_of_utterance(utterance_idx)
+
+    #
     #   DIV
     #
 
@@ -370,7 +416,7 @@ class Dataset(object):
         file_idx_mapping = {}
 
         for file_idx, file_to_import in import_dataset.files.items():
-            imported_file = self.add_file(os.path.join(import_dataset.path, file_to_import.path), file_idx=file_idx, copy_file=copy_files)
+            imported_file = self.add_file(os.path.abspath(os.path.join(import_dataset.path, file_to_import.path)), file_idx=file_idx, copy_file=copy_files)
             file_idx_mapping[file_idx] = imported_file.idx
 
         speaker_idx_mapping = {}

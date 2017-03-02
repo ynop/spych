@@ -1,6 +1,8 @@
 import os
 import sndhdr
 import enum
+import collections
+import glob
 
 from spych.dataset import speaker
 from spych.dataset import segmentation
@@ -17,6 +19,7 @@ class ValidationMetric(enum.Enum):
     UTTERANCE_MISSING_SPEAKER = 'utterance_missing_speaker'
     SPEAKER_MISSING_GENDER = 'speaker_missing_gender'
     SEGMENTATION_MISSING = 'segmentation_missing'
+    FEATURE_MISSING = 'feature_missing'
 
 
 class DatasetValidator(object):
@@ -24,10 +27,9 @@ class DatasetValidator(object):
     Class to validate a dataset.
     """
 
-    def __init__(self, metrics=[], expected_segmentations=[segmentation.TEXT_SEGMENTATION], expected_file_format=audio_format.AudioFileFormat.wav_mono_16bit_16k()):
+    def __init__(self, metrics=[], expected_file_format=audio_format.AudioFileFormat.wav_mono_16bit_16k()):
         self.metrics = list(metrics)
         self.file_format = expected_file_format
-        self.segmentation_keys = list(expected_segmentations)
 
     def validate(self, dataset):
         """ Return the validation results for the selected validation metrics. (dictionary metric/results) """
@@ -56,16 +58,18 @@ class DatasetValidator(object):
             results[ValidationMetric.UTTERANCE_MISSING_SPEAKER] = DatasetValidator.get_utterances_with_missing_speaker(dataset)
 
         if ValidationMetric.SEGMENTATION_MISSING in self.metrics:
-            results[ValidationMetric.SEGMENTATION_MISSING] = DatasetValidator.get_utterances_without_segmentation(dataset,
-                                                                                                                  keys=self.segmentation_keys)
+            results[ValidationMetric.SEGMENTATION_MISSING] = DatasetValidator.get_utterances_without_segmentation(dataset)
 
         if ValidationMetric.SPEAKER_MISSING_GENDER in self.metrics:
             results[ValidationMetric.SPEAKER_MISSING_GENDER] = DatasetValidator.get_speakers_without_gender(dataset)
 
+        if ValidationMetric.FEATURE_MISSING in self.metrics:
+            results[ValidationMetric.FEATURE_MISSING] = DatasetValidator.get_features_with_missing_file(dataset)
+
         return results
 
     @classmethod
-    def full_validator(cls, expected_segmentations=[segmentation.TEXT_SEGMENTATION], expected_file_format=audio_format.AudioFileFormat.wav_mono_16bit_16k()):
+    def full_validator(cls, expected_file_format=audio_format.AudioFileFormat.wav_mono_16bit_16k()):
         """ Returns a validator, that checks all metrics. """
         return cls(
             metrics=[
@@ -77,9 +81,9 @@ class DatasetValidator(object):
                 ValidationMetric.UTTERANCE_INVALID_START_END,
                 ValidationMetric.UTTERANCE_MISSING_SPEAKER,
                 ValidationMetric.SPEAKER_MISSING_GENDER,
-                ValidationMetric.SEGMENTATION_MISSING
+                ValidationMetric.SEGMENTATION_MISSING,
+                ValidationMetric.FEATURE_MISSING
             ],
-            expected_segmentations=expected_segmentations,
             expected_file_format=expected_file_format
         )
 
@@ -182,20 +186,18 @@ class DatasetValidator(object):
         return utterances_with_invalid_start_end
 
     @staticmethod
-    def get_utterances_without_segmentation(dataset, keys=[]):
-        """ Return a list of utterance-idx's where no segmentation is available for the given keys. """
-        if len(keys) <= 0:
-            return []
+    def get_utterances_without_segmentation(dataset):
+        """ Return a dictionary of key/utterance-idx's where no segmentation is available. """
 
-        missing_empty_transcriptions = []
+        keys = dataset.all_segmentation_keys
+        missing_empty_transcriptions = {}
 
-        for utterance in dataset.utterances.values():
-            if utterance.idx not in dataset.segmentations.keys():
-                missing_empty_transcriptions.append(utterance.idx)
-            else:
-                for key in keys:
-                    if key not in dataset.segmentations[utterance.idx].keys() or len(dataset.segmentations[utterance.idx][key].segments) <= 0:
-                        missing_empty_transcriptions.append(utterance.idx)
+        for key in keys:
+            missing_empty_transcriptions[key] = []
+
+            for utterance in dataset.utterances.values():
+                if utterance.idx not in dataset.segmentations.keys() or key not in dataset.segmentations[utterance.idx].keys() or len(dataset.segmentations[utterance.idx][key].segments) <= 0:
+                    missing_empty_transcriptions[key].append(utterance.idx)
 
         return missing_empty_transcriptions
 
@@ -220,3 +222,18 @@ class DatasetValidator(object):
                 missing_empty_genders.append(spk.idx)
 
         return missing_empty_genders
+
+    @staticmethod
+    def get_features_with_missing_file(dataset):
+        """ Return a dictionary (feature-container, list of missing utterance-ids) where there is no feature file. """
+
+        missing_feature_files = collections.defaultdict(list)
+        needed_utterance_ids = set(dataset.utterances.keys())
+
+        for name, container in dataset.features.items():
+            utterance_ids = glob.glob(os.path.join(container.path, '*.npy'))
+            utterance_ids = set([os.path.splitext(os.path.basename(x))[0] for x in utterance_ids])
+
+            missing_feature_files[name] = list(needed_utterance_ids.difference(utterance_ids))
+
+        return missing_feature_files

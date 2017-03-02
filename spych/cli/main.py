@@ -14,6 +14,7 @@ class SpychApp(foundation.CementApp):
             dataset.MainController,
             dataset.CopyController,
             dataset.MergeController,
+            dataset.ImportController,
             wav.MainController,
             wav.AddNoiseController,
             wav.SNREstimationController,

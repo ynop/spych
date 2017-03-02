@@ -1,4 +1,7 @@
 import os
+import struct
+
+import numpy as np
 
 from spych.dataset.io import base
 from spych.dataset import speaker
@@ -91,7 +94,7 @@ class KaldiDatasetLoader(base.DatasetLoader):
                 elif gender == 'f':
                     spk.gender = speaker.Gender.FEMALE
 
-    def _save(self, dataset, path, files):
+    def _save(self, dataset, path, files, copy_files=False):
         kaldi_files = {idx: os.path.abspath(os.path.join(path, filepath)) for idx, filepath in files.items()}
 
         # Write files
@@ -122,3 +125,79 @@ class KaldiDatasetLoader(base.DatasetLoader):
 
         text_path = os.path.join(path, TRANSCRIPTION_FILE_NAME)
         textfile.write_separated_lines(text_path, transcriptions, separator=' ', sort_by_column=0)
+
+    @staticmethod
+    def feature_scp_generator(path):
+        """ Return a generator over all feature matrices defined in a scp. """
+
+        scp_entries = textfile.read_key_value_lines(path, separator=' ')
+
+        for utterance_id, rx_specifier in scp_entries.items():
+            yield utterance_id, KaldiDatasetLoader.read_float_matrix(rx_specifier)
+
+    @staticmethod
+    def read_float_matrix(rx_specifier):
+        """ Return float matrix as np array for the given rx specifier. """
+
+        path, offset = rx_specifier.strip().split(':', maxsplit=1)
+        offset = int(offset)
+        sample_format = 4
+
+        with open(path, 'rb') as f:
+            # move to offset
+            f.seek(offset)
+
+            # assert binary ark
+            binary = f.read(2)
+            assert (binary == b'\x00B')
+
+            # assert type float 32
+            format = f.read(3)
+            assert (format == b'FM ')
+
+            # get number of mfcc features
+            f.read(1)
+            num_frames = struct.unpack('<i', f.read(4))[0]
+
+            # get size of mfcc features
+            f.read(1)
+            feature_size = struct.unpack('<i', f.read(4))[0]
+
+            # read feature data
+            data = f.read(num_frames * feature_size * sample_format)
+
+            feature_vector = np.frombuffer(data, dtype='float32')
+            feature_matrix = np.reshape(feature_vector, (num_frames, feature_size))
+
+            return feature_matrix
+
+    @staticmethod
+    def write_float_matrices(scp_path, ark_path, matrices):
+        """ Write the given dict matrices (utt-id/float ndarray) to the given scp and ark files. """
+
+        scp_entries = []
+
+        with open(ark_path, 'wb') as f:
+            for utterance_id in sorted(list(matrices.keys())):
+                matrix = matrices[utterance_id]
+
+                assert (matrix.dtype == np.float32)
+
+                f.write(('{} '.format(utterance_id)).encode('utf-8'))
+
+                offset = f.tell()
+
+                f.write(b'\x00B')
+                f.write(b'FM ')
+                f.write(b'\x04')
+                f.write(struct.pack('<i', np.size(matrix, 0)))
+                f.write(b'\x04')
+                f.write(struct.pack('<i', np.size(matrix, 1)))
+
+                flattened = matrix.reshape(np.size(matrix, 0) * np.size(matrix, 1))
+                flattened.tofile(f, sep="")
+
+                scp_entries.append('{} {}:{}'.format(utterance_id, ark_path, offset))
+
+        with open(scp_path, 'w') as f:
+            f.write('\n'.join(scp_entries))

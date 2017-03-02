@@ -11,6 +11,7 @@ Utterances with invalid start/end time  {{num_utterance_invalid_start_end}}
 Missing or empty transcriptions         {{num_segmentation_missing}}
 Missing or empty speakers               {{num_utterance_missing_speaker}}
 Missing or empty genders                {{num_speaker_missing_gender}}
+Missing features                        {{num_feature_missing}}
 
 {{#details}}
 -------------------------------------------------------------------------------------
@@ -61,5 +62,10 @@ Missing or empty genders:
 {{#speaker_missing_gender}}
     - {{.}}
 {{/speaker_missing_gender}}
+
+Missing features:
+{{#feature_missing}}
+    - {{.}}
+{{/feature_missing}}
 
 {{/details}}

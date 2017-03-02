@@ -54,9 +54,9 @@ class DatasetLoader(object):
 
             files = {file.idx: self._wav_path(file.path, base_path, path) for file in dataset.files.values()}
 
-        self._save(dataset, path, files)
+        self._save(dataset, path, files, copy_files=copy_files)
 
-    def _save(self, dataset, path, files):
+    def _save(self, dataset, path, files, copy_files=False):
         """ Effectively saves the dataset. Override in subclass. """
         raise NotImplementedError('Loader {} does not support saving datasets.'.format(self.type()))
 

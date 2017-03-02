@@ -1,6 +1,7 @@
 import os
 import collections
 import glob
+import shutil
 
 from spych.dataset.io import base
 from spych.dataset import segmentation
@@ -14,6 +15,7 @@ UTTERANCE_FILE_NAME = 'utterances.txt'
 SPEAKER_INFO_FILE_NAME = 'speakers.json'
 UTT2SPK_FILE_NAME = 'utt2spk.txt'
 SEG_FILE_PREFIX = 'segmentation'
+FEAT_CONTAINER_FILE_NAME = 'features.txt'
 
 
 class SpychDatasetLoader(base.DatasetLoader):
@@ -47,7 +49,8 @@ class SpychDatasetLoader(base.DatasetLoader):
 
         # Read utt2spk
         utt2spk_path = os.path.join(dataset.path, UTT2SPK_FILE_NAME)
-        utt2spk = textfile.read_key_value_lines(utt2spk_path, separator=' ')
+        if os.path.isfile(utt2spk_path):
+            utt2spk = textfile.read_key_value_lines(utt2spk_path, separator=' ')
 
         # Read utterances
         utterance_path = os.path.join(dataset.path, UTTERANCE_FILE_NAME)
@@ -104,7 +107,14 @@ class SpychDatasetLoader(base.DatasetLoader):
 
             dataset.add_subview(sv_name, sv)
 
-    def _save(self, dataset, path, files):
+        # Read features
+        feat_path = os.path.join(dataset.path, FEAT_CONTAINER_FILE_NAME)
+
+        if os.path.isfile(feat_path):
+            for container_name, container_path in textfile.read_key_value_lines(feat_path, separator=' ').items():
+                dataset.add_new_feature_container(container_name, container_path)
+
+    def _save(self, dataset, path, files, copy_files=False):
         # Write files
         file_path = os.path.join(path, FILES_FILE_NAME)
         file_records = files
@@ -153,9 +163,23 @@ class SpychDatasetLoader(base.DatasetLoader):
                 'filtered_utt_ids': sv.filtered_utterance_idxs,
                 'filtered_speaker_ids': sv.filtered_speaker_idxs,
                 'utterance_idx_patterns': sv.utterance_idx_patterns,
-                'speaker_idx_patterns' : sv.speaker_idx_patterns,
-                'utterance_idx_not_patterns' : sv.utterance_idx_not_patterns,
-                'speaker_idx_not_patterns' : sv.speaker_idx_not_patterns
+                'speaker_idx_patterns': sv.speaker_idx_patterns,
+                'utterance_idx_not_patterns': sv.utterance_idx_not_patterns,
+                'speaker_idx_not_patterns': sv.speaker_idx_not_patterns
             }
 
             textfile.write_separated_lines(subview_path, data, separator=' ')
+
+        # Write features
+        feat_path = os.path.join(path, FEAT_CONTAINER_FILE_NAME)
+        feat_records = {}
+
+        for name, feature_container in dataset.features.items():
+            if copy_files and not os.path.samefile(dataset.path, path):
+                rel_container_path = os.path.relpath(feature_container.path, dataset.path)
+                target_abs_path = os.path.abspath(os.path.join(path, rel_container_path))
+                shutil.copytree(feature_container.path, target_abs_path)
+
+                feat_records[name] = rel_container_path
+
+        textfile.write_separated_lines(feat_path, feat_records, separator=' ')

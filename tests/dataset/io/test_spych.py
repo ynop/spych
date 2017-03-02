@@ -69,6 +69,12 @@ class SpychDatasetLoaderTest(unittest.TestCase):
         self.assertSetEqual(set(['utt-4']), set(view.utterances.keys()))
         self.assertSetEqual(set(['speaker-2']), set(view.speakers.keys()))
 
+        self.assertIn('mfcc', loaded_dataset.features.keys())
+        self.assertIn('fbank', loaded_dataset.features.keys())
+
+        self.assertEqual(os.path.join(loaded_dataset.path, 'mfcc_features'), loaded_dataset.features['mfcc'].path)
+        self.assertEqual(os.path.join(loaded_dataset.path, 'fbank_features'), loaded_dataset.features['fbank'].path)
+
     def test_save(self):
         ds = resources.create_dataset()
 
