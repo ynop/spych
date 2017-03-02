@@ -20,10 +20,10 @@ class BatchGeneratorTest(unittest.TestCase):
         # Add one different to one set
         self.test_set_b.add_utterance('wav_4', utterance_idx='utt_diff')
 
-    def test_generate_batches_by_utterances(self):
+    def test_generate_utterance_batches(self):
         generator = iteration.BatchGenerator(self.test_set_a)
 
-        batches = [x for x in generator.generate_batches_by_utterances(2)]
+        batches = [x for x in generator.generate_utterance_batches(2)]
 
         self.assertEqual(4, len(batches))
 
@@ -32,10 +32,10 @@ class BatchGeneratorTest(unittest.TestCase):
         self.assertEqual(2, len(batches[2]))
         self.assertEqual(1, len(batches[3]))
 
-    def test_generate_batches_by_utterances_two_sets(self):
+    def test_generate_utterance_batches_two_sets(self):
         generator = iteration.BatchGenerator([self.test_set_a, self.test_set_b])
 
-        batches = [x for x in generator.generate_batches_by_utterances(2)]
+        batches = [x for x in generator.generate_utterance_batches(2)]
 
         self.assertEqual(3, len(batches))
 
@@ -43,11 +43,11 @@ class BatchGeneratorTest(unittest.TestCase):
         self.assertEqual(2, len(batches[1]))
         self.assertEqual(1, len(batches[2]))
 
-    def test_generate_batches_by_utterances_randomly(self):
+    def test_generate_utterance_batches_randomly(self):
         generator = iteration.BatchGenerator([self.test_set_a, self.test_set_b])
 
-        first_run = [x for x in generator.generate_batches_by_utterances(2)]
-        second_run = [x for x in generator.generate_batches_by_utterances(2)]
-        third_run = [x for x in generator.generate_batches_by_utterances(2)]
+        first_run = [x for x in generator.generate_utterance_batches(2)]
+        second_run = [x for x in generator.generate_utterance_batches(2)]
+        third_run = [x for x in generator.generate_utterance_batches(2)]
 
         self.assertFalse(first_run == second_run and first_run == third_run)
