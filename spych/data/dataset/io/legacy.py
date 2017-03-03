@@ -1,6 +1,6 @@
 import os
 
-from ..loader import base
+from ..io import base
 from spych import data
 from spych.utils import jsonfile
 from spych.utils import textfile

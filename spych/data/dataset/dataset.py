@@ -25,7 +25,7 @@ class Dataset(object):
         self.path = path
 
         if loader is None:
-            from data.dataset.loader import spych
+            from data.dataset.io import spych
             self.loader = spych.SpychDatasetLoader()
         else:
             self.loader = loader
@@ -71,11 +71,11 @@ class Dataset(object):
         """ Loads the dataset from the given path, using the given loader. If no loader is given the spych loader is used. """
 
         if loader is None:
-            from ..dataset import loader
-            loader = loader.SpychDatasetLoader()
+            from ..dataset import io
+            loader = io.SpychDatasetLoader()
         elif type(loader) == str:
-            from ..dataset import loader
-            loader = loader.create_loader_of_type(loader)
+            from ..dataset import io
+            loader = io.create_loader_of_type(loader)
 
         return loader.load(path)
 

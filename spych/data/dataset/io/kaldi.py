@@ -3,7 +3,7 @@ import struct
 
 import numpy as np
 
-from ..loader import base
+from ..io import base
 
 from spych import data
 from spych.utils import textfile

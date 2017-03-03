@@ -3,7 +3,7 @@ import os
 from cement.core import controller
 
 from spych.data import dataset
-from spych.data.dataset import loader
+from spych.data.dataset import io
 
 
 def format_argument():
@@ -48,7 +48,7 @@ class MainController(controller.CementBaseController):
 
     @controller.expose(help="Create an empty dataset.")
     def new(self):
-        ds_loader = loader.create_loader_of_type(self.app.pargs.format)
+        ds_loader = io.create_loader_of_type(self.app.pargs.format)
         dset = dataset.Dataset(self.app.pargs.path, loader=ds_loader)
         dset.save()
 
@@ -129,8 +129,8 @@ class CopyController(controller.CementBaseController):
 
     @controller.expose(hide=True)
     def default(self):
-        source_loader = loader.create_loader_of_type(self.app.pargs.source_format)
-        target_loader = loader.create_loader_of_type(self.app.pargs.target_format)
+        source_loader = io.create_loader_of_type(self.app.pargs.source_format)
+        target_loader = io.create_loader_of_type(self.app.pargs.target_format)
 
         source_ds = source_loader.load(self.app.pargs.sourcepath)
         copy_ds = source_ds
@@ -158,8 +158,8 @@ class MergeController(controller.CementBaseController):
 
     @controller.expose(hide=True)
     def default(self):
-        target_loader = loader.create_loader_of_type(self.app.pargs.target_format)
-        merge_loader = loader.create_loader_of_type(self.app.pargs.merge_format)
+        target_loader = io.create_loader_of_type(self.app.pargs.target_format)
+        merge_loader = io.create_loader_of_type(self.app.pargs.merge_format)
 
         target_set = target_loader.load(self.app.pargs.targetpath)
         merge_set = merge_loader.load(self.app.pargs.mergepath)
@@ -199,9 +199,37 @@ class ImportController(controller.CementBaseController):
         if feat_container_name not in dset.features.keys():
             dset.add_new_feature_container(feat_container_name, 'features_{}'.format(feat_container_name))
 
-        for index, (utterance_idx, feature_matrix) in enumerate(loader.KaldiDatasetLoader.feature_scp_generator(self.app.pargs.scp)):
+        for index, (utterance_idx, feature_matrix) in enumerate(io.KaldiDatasetLoader.feature_scp_generator(self.app.pargs.scp)):
             dset.add_features(utterance_idx, feature_matrix, feat_container_name)
 
         dset.save()
 
         print('Imported {} feature-matrices into the dataset with {} utterances.'.format(index + 1, dset.num_utterances))
+
+
+class ModifyController(controller.CementBaseController):
+    class Meta:
+        label = 'dataset-modify'
+        stacked_on = 'base'
+        stacked_type = 'nested'
+        description = "Apply different modifications to a dataset."
+
+        arguments = [
+            (['path'], dict(action='store', help='Path to the dataset to import data into.')),
+            (['-f', '--format'], format_argument()),
+            (['--file-path'], dict(action='store', help='Path to set for files in the dataset.'))
+        ]
+
+    @controller.expose(hide=True)
+    def default(self):
+        self.app.args.print_help()
+
+    @controller.expose(help="Set the path of all files to the path given with the --file-path option.")
+    def set_file_path(self):
+        if self.app.pargs.file_path is None:
+            print("You have to provide a path (--file-path).")
+            return
+
+        dset = dataset.Dataset.load(self.app.pargs.path, loader=self.app.pargs.format)
+
+        dset.set_relative_wav_paths(self.app.pargs.file_path)

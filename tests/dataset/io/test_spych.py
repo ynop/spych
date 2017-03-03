@@ -3,7 +3,7 @@ import shutil
 import tempfile
 import unittest
 
-from data.dataset.loader import spych
+from data.dataset.io import spych
 from spych.data import speaker
 
 from .. import resources

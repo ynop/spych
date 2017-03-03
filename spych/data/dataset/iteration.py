@@ -2,6 +2,8 @@ import random
 
 import numpy as np
 
+from spych.utils import array
+
 
 class BatchGenerator(object):
     """
@@ -26,18 +28,22 @@ class BatchGenerator(object):
         for i in range(0, len(shuffled_utt_ids), batch_size):
             yield shuffled_utt_ids[i:i + batch_size]
 
-    def generate_feature_batches(self, feature_name, batch_size, splice_size=0, splice_step=1, repeat_border_frames=True):
+    def generate_feature_batches(self, feature_name, batch_size, splice_sizes=0, splice_step=1, repeat_border_frames=True):
         """
         Return a generator which yields batchs. One batch contains the concatenated features of batch_size utterances.
         Yields list with length equal to the number of datasets in this generator. The list contains ndarrays with the concatenated features.
 
         :param feature_name: Name of the feature container in the dataset to use.
         :param batch_size: Number of utterances in one batch
-        :param splice_size: Appends x previous and next features to the sample. (e.g. if splice_size is 4 the sample contains 9 features in total)
+        :param splice_sizes: Appends x previous and next features to the sample. (e.g. if splice_size is 4 the sample contains 9 features in total).
+        If a list of ints is given the different splice-sizes for the different datasets are used.
         :param splice_step: Number of features to move forward for the next sample.
         :param repeat_border_frames: If True repeat the first and last frame for splicing. Otherwise pad with zeroes.
         :returns: generator
         """
+
+        if type(splice_sizes) == int:
+            splice_sizes *= len(self.datasets) * [splice_sizes]
 
         for batch_utt_ids in self.generate_utterance_batches(batch_size):
 
@@ -51,14 +57,12 @@ class BatchGenerator(object):
                 # clip features to the number of the smallest feature matrix
                 per_set_feature_lengths = [np.size(x, 0) for x in per_set_features]
                 min_feature_length = min(per_set_feature_lengths)
-                per_set_features_clipped = [x[:min_feature_length] for x in per_set_features]
 
-                # splice the features
-                per_set_features_spliced = [self._splice_feature_matrix(x, splice_size, splice_step, repeat_border_frames) for x in
-                                            per_set_features_clipped]
-
-                for index, x in enumerate(per_set_features_spliced):
-                    batch_features[index].append(x)
+                # clip and splice the features and add to the batch
+                for index, features in enumerate(per_set_features):
+                    features = features[:min_feature_length]
+                    features = array.splice_features(features, splice_sizes[index], splice_step, repeat_border_frames)
+                    batch_features[index].append(features)
 
             batch = [np.concatenate(x) for x in batch_features]
 
@@ -77,20 +81,3 @@ class BatchGenerator(object):
         random.shuffle(utterances)
 
         return utterances
-
-    def _splice_feature_matrix(self, matrix, splice_size=0, splice_step=1, repeat_border_frames=True):
-        num_features = np.size(matrix, 0)
-        feature_size = np.size(matrix, 1)
-
-        num_splices = (num_features // splice_step) + 1
-        spliced_feature_size = ((splice_size * 2) + 1) * feature_size
-
-        if repeat_border_frames:
-            padded_matrix = np.pad(matrix, ((splice_size, splice_size), (0, 0)), 'edge')
-        else:
-            padded_matrix = np.pad(matrix, ((splice_size, splice_size), (0, 0)), 'constant', constant_values=0)
-
-        new_shape = (num_splices, spliced_feature_size)
-        new_strides = (padded_matrix.strides[0] * splice_step, padded_matrix.strides[1])
-
-        return np.lib.stride_tricks.as_strided(padded_matrix, shape=new_shape, strides=new_strides)

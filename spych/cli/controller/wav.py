@@ -24,7 +24,7 @@ class MainController(controller.CementBaseController):
 class AddNoiseController(controller.CementBaseController):
     class Meta:
         label = 'add-noise'
-        stacked_on = 'base'
+        stacked_on = 'wav'
         stacked_type = 'nested'
         description = "Add noise to wav files."
 

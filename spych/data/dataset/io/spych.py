@@ -5,7 +5,7 @@ import shutil
 
 from spych import data
 from spych.data import dataset
-from spych.data.dataset.loader import base
+from spych.data.dataset.io import base
 from spych.utils import jsonfile
 from spych.utils import textfile
 

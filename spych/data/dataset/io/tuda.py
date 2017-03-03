@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 
 from spych import data
 from spych.data import dataset
-from spych.data.dataset.loader import base
+from spych.data.dataset.io import base
 
 
 class TudaDatasetLoader(base.DatasetLoader):
