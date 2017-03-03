@@ -23,30 +23,18 @@ class LegacySpychDatasetLoader(base.DatasetLoader):
     """
     Loads dataset from the old spych format.
 
-    wavs.txt
-    --------------------------------
-    [wav-id] [relative-wav-path]
+    wavs.txt: [wav-id] [relative-wav-path]
 
-    utterances.txt
-    --------------------------------
-    [utt-id] [wav-id] [start] [end]
+    utterances.txt : [utt-id] [wav-id] [start] [end]
 
-    transcriptions.txt
-    --------------------------------
-    [utt-id] [transcription]
+    transcriptions.txt : [utt-id] [transcription]
 
-    transcriptions_raw.txt
-    --------------------------------
-    [utt-id] [transcription raw]
-
+    transcriptions_raw.txt : [utt-id] [transcription raw]
     Transcription with punctuation.
 
-    utt2spk.txt
-    --------------------------------
-    [utt-id] [speaker-id]
+    utt2spk.txt : [utt-id] [speaker-id]
 
-    speaker_info.json
-    --------------------------------
+    speaker_info.json :
     {
         "speaker_id" : {
             "gender" : "m"/"f",

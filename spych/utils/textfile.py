@@ -66,9 +66,7 @@ def write_separated_lines(path, values, separator=' ', sort_by_column=0):
     :param path: Path to write file to.
     :param values: Dict or list
     :param separator: Separator to use between columns.
-    :param sort_by_column: if >= 0, sorts the list by the given index, if its 0 or 1 and its a dictionary it sorts it by either the
-    key (0) or value (1). By default 0, meaning sorted by the first column or the key.
-    :return:
+    :param sort_by_column: if >= 0, sorts the list by the given index, if its 0 or 1 and its a dictionary it sorts it by either the key (0) or value (1). By default 0, meaning sorted by the first column or the key.
     """
     f = open(path, 'w', encoding='utf-8')
 

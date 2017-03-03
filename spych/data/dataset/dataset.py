@@ -102,6 +102,7 @@ class Dataset(object):
         exported_set.utterances = copy.deepcopy(sv.utterances)
         exported_set.speakers = copy.deepcopy(sv.speakers)
         exported_set.segmentations = copy.deepcopy(sv.segmentations)
+        exported_set.features = copy.deepcopy(sv.features)
 
         return exported_set
 

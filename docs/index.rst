@@ -25,7 +25,10 @@ Spych is a set of python tools for tasks related to automatic speech recognition
    :maxdepth: 2
    :caption: PACKAGE REFERENCE
 
-   packages/dataset
+   packages/data
+   packages/data_dataset
+   packages/data_dataset_io
+   packages/utils
 
 
 

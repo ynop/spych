@@ -40,6 +40,10 @@ class Subview(object):
     def segmentations(self):
         return {utterance.idx: dict(self.dataset.segmentations[utterance.idx]) for utterance in self.utterances.values()}
 
+    @property
+    def features(self):
+        return self.dataset.features
+
     def does_utterance_match(self, utterance):
         """ Return True if the given utterance matches all filter criteria. Otherwise return False. """
 

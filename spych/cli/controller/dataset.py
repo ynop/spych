@@ -58,7 +58,7 @@ class MainController(controller.CementBaseController):
     @controller.expose(help="Validate a dataset.")
     def validate(self):
         dset = dataset.Dataset.load(self.app.pargs.path, loader=self.app.pargs.format)
-        validator = dataset.DatasetValidator.full_validator()
+        validator = dataset.Validator.full_validator()
 
         result = validator.validate(dset)
 
