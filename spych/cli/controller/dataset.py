@@ -41,7 +41,10 @@ class MainController(controller.CementBaseController):
             "path": os.path.abspath(dset.path),
             "num_utterances": dset.num_utterances,
             "num_files": dset.num_files,
-            "num_speakers": dset.num_speakers
+            "num_speakers": dset.num_speakers,
+            "features" : ', '.join(dset.features.keys()),
+            "segmentations" : ', '.join(dset.all_segmentation_keys),
+            "subviews" : ', '.join(dset.subviews.keys())
         }
 
         self.app.render(info_data, 'dataset_info.mustache')

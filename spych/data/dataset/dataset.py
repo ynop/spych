@@ -17,7 +17,7 @@ class Dataset(object):
     utterances: utterance-id -> utterance-obj
     segmentations: utterance-id -> key -> segmentation-obj
     speakers: speaker-id -> speaker-obj
-    subsets: subset-id -> list of utterance-id
+    subviews: subview-id -> subview-obj
 
     """
 
