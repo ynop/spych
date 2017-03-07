@@ -1,4 +1,5 @@
 import os
+import glob
 
 import numpy as np
 
@@ -11,7 +12,6 @@ class FeatureContainer(object):
     """
 
     def __init__(self, path):
-        self.files = {}
         self.path = path
 
     def load_features_of_utterance(self, utterance_idx):
@@ -24,3 +24,10 @@ class FeatureContainer(object):
 
         feature_file_path = os.path.join(self.path, utterance_idx)
         np.save(feature_file_path, features)
+
+    def feature_size(self):
+        """ Return the feature dimension. Just reads a random utterance to get the feature size. """
+        file = glob.glob(os.path.join(self.path, '*.npy'))[0]
+
+        matrix = np.load(file)
+        return np.size(matrix, 1)
