@@ -53,18 +53,19 @@ class Dataset(object):
 
         self.save_at(self.path)
 
-    def save_at(self, path, loader=None):
+    def save_at(self, path, loader=None, copy_files=False):
         """
         Save this dataset at the given path.
 
         :param path: Path to save the dataset to.
         :param loader: If you want to use another loader (e.g. to export to another format).
+        :param copy_files: If true the files are also stored in the new path, if not already there.
         """
 
         if loader is None:
-            self.loader.save(self, path)
+            self.loader.save(self, path, copy_files=copy_files)
         else:
-            loader.save(self, path)
+            loader.save(self, path, copy_files=copy_files)
 
     @classmethod
     def load(cls, path, loader=None):
