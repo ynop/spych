@@ -25,7 +25,7 @@ class Dataset(object):
         self.path = path
 
         if loader is None:
-            from data.dataset.io import spych
+            from spych.data.dataset.io import spych
             self.loader = spych.SpychDatasetLoader()
         else:
             self.loader = loader
