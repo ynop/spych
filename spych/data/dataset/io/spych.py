@@ -175,7 +175,12 @@ class SpychDatasetLoader(base.DatasetLoader):
             if copy_files and not os.path.samefile(saving_dataset.path, path):
                 rel_container_path = os.path.relpath(feature_container.path, saving_dataset.path)
                 target_abs_path = os.path.abspath(os.path.join(path, rel_container_path))
-                shutil.copytree(feature_container.path, target_abs_path)
+
+                for utterance_idx in saving_dataset.utterances.keys():
+                    src = os.path.join(feature_container.path, '{}.npy'.format(utterance_idx))
+                    target = os.path.join(target_abs_path, '{}.npy'.format(utterance_idx))
+                    shutil.copy(src, target)
+
                 feat_records[name] = rel_container_path
             else:
                 feat_records[name] = os.path.relpath(feature_container.path, path)
