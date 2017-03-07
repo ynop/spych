@@ -1,6 +1,6 @@
 import enum
 
-from spych.data import dataset
+from spych.data.dataset import validation
 from spych.audio import format as audio_format
 
 
@@ -44,27 +44,27 @@ class Rectifier(object):
     @staticmethod
     def remove_files_missing(self, dataset_to_fix):
         """ Delete all files references, where the referenced wav file doesn't exist. """
-        files_missing = dataset.Validator.get_files_missing(dataset_to_fix)
+        files_missing = validation.Validator.get_files_missing(dataset_to_fix)
         dataset_to_fix.remove_wavs(files_missing, remove_files=False)
         dataset_to_fix.save()
 
     @staticmethod
     def remove_empty_wavs(self, dataset_to_fix):
         """ Delete all files that have no content. """
-        empty_files = dataset.Validator.get_files_empty(dataset_to_fix)
+        empty_files = validation.Validator.get_files_empty(dataset_to_fix)
         dataset_to_fix.remove_wavs(empty_files, remove_files=True)
         dataset_to_fix.save()
 
     @staticmethod
     def remove_files_with_wrong_format(self, dataset_to_fix, expected_format=audio_format.AudioFileFormat.wav_mono_16bit_16k()):
         """ Delete all wav files with the wrong format (Sampling rate, sample width, ...). """
-        wrong_files = dataset.Validator.get_files_with_wrong_format(dataset_to_fix, expected_format)
+        wrong_files = validation.Validator.get_files_with_wrong_format(dataset_to_fix, expected_format)
         dataset_to_fix.remove_wavs(wrong_files, remove_files=True)
         dataset_to_fix.save()
 
     @staticmethod
     def remove_utterances_with_missing_file(self, dataset_to_fix):
         """ Remove all utterances where the referenced file doesn't exist. """
-        utts = dataset.Validator.get_utterances_with_missing_file_idx(dataset_to_fix)
+        utts = validation.Validator.get_utterances_with_missing_file_idx(dataset_to_fix)
         dataset_to_fix.remove_utterances(utts)
         dataset_to_fix.save()
