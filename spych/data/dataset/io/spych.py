@@ -176,6 +176,8 @@ class SpychDatasetLoader(base.DatasetLoader):
                 rel_container_path = os.path.relpath(feature_container.path, saving_dataset.path)
                 target_abs_path = os.path.abspath(os.path.join(path, rel_container_path))
 
+                os.makedirs(target_abs_path, exist_ok=True)
+
                 for utterance_idx in saving_dataset.utterances.keys():
                     src = os.path.join(feature_container.path, '{}.npy'.format(utterance_idx))
                     target = os.path.join(target_abs_path, '{}.npy'.format(utterance_idx))
