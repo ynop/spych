@@ -62,6 +62,8 @@ class Dataset(object):
         :param copy_files: If true the files are also stored in the new path, if not already there.
         """
 
+        self.path = path
+
         if loader is None:
             self.loader.save(self, path, copy_files=copy_files)
         else:
