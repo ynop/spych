@@ -16,7 +16,9 @@ class FeatureContainer(object):
     def load_features_of_utterance(self, utterance_idx):
         """ Return the features for the given utterance as numpy array. None if the given utterance has no features."""
         feature_file_path = os.path.join(self.path, '{}.npy'.format(utterance_idx))
-        return np.load(feature_file_path)
+
+        if os.path.isfile(feature_file_path):
+            return np.load(feature_file_path)
 
     def add_features_for_utterance(self, utterance_idx, features):
         """ Stores the given features (numpy array) for the given utterance. """
