@@ -61,13 +61,12 @@ class Dataset(object):
         :param loader: If you want to use another loader (e.g. to export to another format).
         :param copy_files: If true the files are also stored in the new path, if not already there.
         """
-
-        self.path = path
-
         if loader is None:
             self.loader.save(self, path, copy_files=copy_files)
         else:
             loader.save(self, path, copy_files=copy_files)
+
+        self.path = path
 
     @classmethod
     def load(cls, path, loader=None):
