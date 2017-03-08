@@ -368,7 +368,7 @@ class Dataset(object):
             final_feature_path = os.path.join(self.path, path)
 
         os.makedirs(final_feature_path, exist_ok=True)
-        self.features[name] = data.FeatureContainer(final_feature_path)
+        self.features[name] = data.FeatureContainer(final_feature_path, dataset=self)
 
     def add_features(self, utterance_idx, feature_matrix, feature_container):
         """

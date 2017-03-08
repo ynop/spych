@@ -25,7 +25,7 @@ class MainController(controller.CementBaseController):
                             help='Path to the dataset (Folder).')),
             (['-f', '--format'], format_argument()),
             (['--detailed'], dict(action='store_true',
-                                  help='Show detailed validation results.')),
+                                  help='Show detailed info or validation results.')),
         ]
 
     @controller.expose(hide=True)
@@ -36,15 +36,29 @@ class MainController(controller.CementBaseController):
     def info(self):
         dset = dataset.Dataset.load(self.app.pargs.path, loader=self.app.pargs.format)
 
+        feature_stats = []
+
+        if self.app.pargs.detailed:
+            for feature_name, feature_container in dset.features.items():
+                stats = feature_container.get_statistics()
+                feature_stats.append({
+                    "name": feature_name,
+                    "min": stats[0],
+                    "max": stats[1],
+                    "mean": stats[2],
+                    "stdv": stats[3],
+                })
+
         info_data = {
             "name": dset.name,
             "path": os.path.abspath(dset.path),
             "num_utterances": dset.num_utterances,
             "num_files": dset.num_files,
             "num_speakers": dset.num_speakers,
-            "features" : ', '.join(dset.features.keys()),
-            "segmentations" : ', '.join(dset.all_segmentation_keys),
-            "subviews" : ', '.join(dset.subviews.keys())
+            "features": ', '.join(dset.features.keys()),
+            "segmentations": ', '.join(dset.all_segmentation_keys),
+            "subviews": ', '.join(dset.subviews.keys()),
+            "feature_stats": feature_stats
         }
 
         self.app.render(info_data, 'dataset_info.mustache')

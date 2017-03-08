@@ -3,10 +3,10 @@ import shutil
 import tempfile
 import unittest
 
-from data.dataset.io import spych
+from spych.data.dataset.io import spych
 from spych.data import speaker
 
-from .. import resources
+from tests.data import resources
 
 
 class SpychDatasetLoaderTest(unittest.TestCase):

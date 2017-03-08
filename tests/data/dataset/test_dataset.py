@@ -2,9 +2,9 @@ import os
 import shutil
 import unittest
 
-from data.dataset import subview
+from spych.data.dataset import subview
 
-from . import resources
+from tests.data import resources
 
 
 class DatasetTest(unittest.TestCase):

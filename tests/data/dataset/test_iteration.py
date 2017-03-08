@@ -1,8 +1,8 @@
 import unittest
 
-from data.dataset import iteration
+from spych.data.dataset import iteration
 
-from . import resources
+from tests.data import resources
 
 
 class BatchGeneratorTest(unittest.TestCase):

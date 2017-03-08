@@ -1,9 +1,9 @@
 import shutil
 import unittest
 
-from data.dataset import validation
+from spych.data.dataset import validation
 
-from . import resources
+from tests.data import resources
 
 
 class DatasetTest(unittest.TestCase):
