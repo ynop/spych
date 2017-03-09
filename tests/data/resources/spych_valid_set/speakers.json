@@ -1,0 +1,17 @@
+{
+  "sam": {
+    "gender" : "m"
+  },
+  "rowena": {
+    "gender" : "f"
+  },
+  "dean": {
+    "gender" : "m"
+  },
+  "cas": {
+    "gender" : "m"
+  },
+  "crowley": {
+    "gender" : "m"
+  }
+}

@@ -19,6 +19,7 @@ Spych is a set of python tools for tasks related to automatic speech recognition
    :maxdepth: 2
    :caption: TUTORIAL
 
+   tutorial/cli
    tutorial/dataset
 
 .. toctree::

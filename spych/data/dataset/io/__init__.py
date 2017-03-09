@@ -1,3 +1,4 @@
+from .base import DatasetLoader
 from .kaldi import KaldiDatasetLoader
 from .legacy import LegacySpychDatasetLoader
 from .spych import SpychDatasetLoader

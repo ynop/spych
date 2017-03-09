@@ -1,4 +1,9 @@
 class Utterance(object):
+    """
+    An utterance defines an audio sample. Normally an audio file can contain multiple utterances.
+    But every utterance is a part of a file.
+    """
+
     __slots__ = ['idx', 'file_idx', 'speaker_idx', 'start', 'end']
 
     START_FULL_FILE = 0

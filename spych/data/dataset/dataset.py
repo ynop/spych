@@ -11,14 +11,12 @@ from spych.utils import naming
 
 class Dataset(object):
     """
-    Represents a audio dataset.
+    Represents an audio dataset.
 
-    files: file-id -> file-obj
-    utterances: utterance-id -> utterance-obj
-    segmentations: utterance-id -> key -> segmentation-obj
-    speakers: speaker-id -> speaker-obj
-    subviews: subview-id -> subview-obj
-
+    :param path: Path to a directory on the filesystem, which acts as root folder for the dataset.
+                If no path is given the dataset cannot be saved on disk.
+    :param loader: This object is used to save the dataset. By default :class:`spych.data.dataset.io.SpychDatasetLoader` is used.
+    :type loader: :class:`spych.data.dataset.io.DatasetLoader`
     """
 
     def __init__(self, path=None, loader=None):
@@ -40,13 +38,16 @@ class Dataset(object):
     @property
     def name(self):
         """
-        Get the name of the dataset (= basename)
+        Get the name of the dataset (Equals basename of the path, if not None.)
         :return: name
         """
-        return os.path.basename(self.path)
+        if self.path is None:
+            return "undefined"
+        else:
+            return os.path.basename(self.path)
 
     def save(self):
-        """ Save this dataset at the self.path. """
+        """ Save this dataset at self.path. """
 
         if self.path is None:
             raise ValueError('No path given to save the dataset.')
@@ -55,14 +56,18 @@ class Dataset(object):
 
     def save_at(self, path, loader=None, copy_files=False):
         """
-        Save this dataset at the given path.
+        Save this dataset at the given path. If the path differs from the current path set, the path gets updated.
 
         :param path: Path to save the dataset to.
-        :param loader: If you want to use another loader (e.g. to export to another format).
+        :param loader: If you want to use another loader (e.g. to export to another format). Otherwise it uses the loader associated with this dataset.
         :param copy_files: If true the files are also stored in the new path, if not already there.
         """
         if loader is None:
             self.loader.save(self, path, copy_files=copy_files)
+        elif type(loader) == str:
+            from ..dataset import io
+            loader = io.create_loader_of_type(loader)
+            loader.save(self, path, copy_files=copy_files)
         else:
             loader.save(self, path, copy_files=copy_files)
 
@@ -413,7 +418,8 @@ class Dataset(object):
         file_idx_mapping = {}
 
         for file_idx, file_to_import in import_dataset.files.items():
-            imported_file = self.add_file(os.path.abspath(os.path.join(import_dataset.path, file_to_import.path)), file_idx=file_idx, copy_file=copy_files)
+            imported_file = self.add_file(os.path.abspath(os.path.join(import_dataset.path, file_to_import.path)), file_idx=file_idx,
+                                          copy_file=copy_files)
             file_idx_mapping[file_idx] = imported_file.idx
 
         speaker_idx_mapping = {}
