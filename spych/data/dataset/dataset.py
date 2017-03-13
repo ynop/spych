@@ -4,6 +4,8 @@ import os
 import random
 import shutil
 
+import librosa
+
 from spych import data
 from spych.audio import signal
 from spych.utils import naming
@@ -278,6 +280,29 @@ class Dataset(object):
 
             if utt.idx in self.segmentations.keys():
                 del self.segmentations[utt.idx]
+
+    def read_utterance_data(self, utterance_idx):
+        """
+        Read the audio signal for the given utterance. This uses librosa.core.load.
+
+        :param utterance_idx: Utterance-Id to read signal for.
+        :return: tuple (nd-array samples, sampling-rate)
+        """
+        utt = self.utterances[utterance_idx]
+        rel_file_path = self.files[utt.file_idx].path
+        abs_file_path = os.path.join(self.path, rel_file_path)
+
+        if utt.end != data.Utterance.END_FULL_FILE:
+            print('end')
+            print(utt.start)
+            print(utt.end-utt.start)
+            samples, sampling_rate = librosa.core.load(abs_file_path, sr=None, offset=utt.start, duration=utt.end - utt.start)
+        else:
+            print('noend')
+            print(utt.start)
+            samples, sampling_rate = librosa.core.load(abs_file_path, sr=None, offset=utt.start)
+
+        return samples, sampling_rate
 
     #
     #   Speaker
