@@ -38,6 +38,7 @@ class FeatureContainer(object):
         per_utt_mins = []
         per_utt_maxs = []
         per_utt_means = []
+        per_utt_vars = []
         per_utt_stdevs = []
 
         for utterance_idx in self.dataset.utterances.keys():
@@ -47,11 +48,13 @@ class FeatureContainer(object):
                 per_utt_mins.append(np.min(matrix))
                 per_utt_maxs.append(np.max(matrix))
                 per_utt_means.append(np.mean(matrix))
+                per_utt_vars.append(np.var(matrix))
                 per_utt_stdevs.append(np.std(matrix))
 
         min = np.min(per_utt_mins)
         max = np.max(per_utt_maxs)
         mean = np.mean(per_utt_means)
+        var = np.mean(per_utt_vars)
         stdev = np.mean(per_utt_stdevs)
 
-        return min, max, mean, stdev
+        return min, max, mean, var, stdev

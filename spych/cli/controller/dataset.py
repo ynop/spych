@@ -46,7 +46,8 @@ class MainController(controller.CementBaseController):
                     "min": stats[0],
                     "max": stats[1],
                     "mean": stats[2],
-                    "stdv": stats[3],
+                    "var": stats[3],
+                    "stdv": stats[4],
                     "dim" : feature_container.feature_size()
                 })
 
