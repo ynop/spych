@@ -293,13 +293,8 @@ class Dataset(object):
         abs_file_path = os.path.join(self.path, rel_file_path)
 
         if utt.end != data.Utterance.END_FULL_FILE:
-            print('end')
-            print(utt.start)
-            print(utt.end-utt.start)
             samples, sampling_rate = librosa.core.load(abs_file_path, sr=None, offset=utt.start, duration=utt.end - utt.start)
         else:
-            print('noend')
-            print(utt.start)
             samples, sampling_rate = librosa.core.load(abs_file_path, sr=None, offset=utt.start)
 
         return samples, sampling_rate
