@@ -6,3 +6,4 @@ httplib2
 pystache
 numpy
 scipy
+librosa
