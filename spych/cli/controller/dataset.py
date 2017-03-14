@@ -48,7 +48,7 @@ class MainController(controller.CementBaseController):
                     "mean": stats[2],
                     "var": stats[3],
                     "stdv": stats[4],
-                    "dim" : feature_container.feature_size()
+                    "dim": feature_container.feature_size()
                 })
 
         info_data = {
@@ -143,6 +143,7 @@ class CopyController(controller.CementBaseController):
                                        help='Only copy a specific subview.')),
             (['-s', '--source-format'], format_argument()),
             (['-t', '--target-format'], format_argument()),
+            (['--main-features'], dict(action='store', help='Set the name of the main features (used when export to kaldi).')),
             (['--copy-files'], dict(action='store_true', help='Also copy the audio files to the target dataset.')),
         ]
 
@@ -150,6 +151,9 @@ class CopyController(controller.CementBaseController):
     def default(self):
         source_loader = io.create_loader_of_type(self.app.pargs.source_format)
         target_loader = io.create_loader_of_type(self.app.pargs.target_format)
+
+        source_loader.main_features = self.app.pargs.main_features
+        target_loader.main_features = self.app.pargs.main_features
 
         source_ds = source_loader.load(self.app.pargs.sourcepath)
         copy_ds = source_ds

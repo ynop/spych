@@ -13,9 +13,11 @@ SEGMENTS_FILE_NAME = 'segments'
 UTT2SPK_FILE_NAME = 'utt2spk'
 SPK2GENDER_FILE_NAME = 'spk2gender'
 TRANSCRIPTION_FILE_NAME = 'text'
+FEATS_FILE_NAME = 'feats'
 
 
 class KaldiDatasetLoader(base.DatasetLoader):
+
     @classmethod
     def type(cls):
         return 'kaldi'
@@ -124,6 +126,22 @@ class KaldiDatasetLoader(base.DatasetLoader):
 
         text_path = os.path.join(path, TRANSCRIPTION_FILE_NAME)
         textfile.write_separated_lines(text_path, transcriptions, separator=' ', sort_by_column=0)
+
+        # Write features
+        if self.main_features is not None:
+            fc = dataset.features[self.main_features]
+            matrices = {}
+
+            for utt_id in dataset.utterances.keys():
+                matrix = fc.load_features_of_utterance(utt_id)
+
+                if matrix is not None:
+                    matrices[utt_id] = matrix
+
+            ark_path = os.path.abspath(os.path.join(path, '{}.ark'.format(FEATS_FILE_NAME)))
+            scp_path = os.path.join(path, '{}.scp'.format(FEATS_FILE_NAME))
+
+            self.write_float_matrices(scp_path, ark_path, matrices)
 
     @staticmethod
     def feature_scp_generator(path):

@@ -9,6 +9,9 @@ class DatasetLoader(object):
     A dataset loader is responsible to load a dataset from a filesystem or save a dataset to the filesystem.
     """
 
+    def __init__(self, main_features=None):
+        self.main_features = main_features
+
     @classmethod
     def type(cls):
         """ Return the dataset type (e.g. tuda, spych, TIMIT) of this loader. """
