@@ -83,26 +83,25 @@ class MainController(controller.CementBaseController):
         }
 
         for metric in dataset.ValidationMetric:
-            if metric not in [dataset.ValidationMetric.FEATURE_MISSING, dataset.ValidationMetric.SEGMENTATION_MISSING]:
+            if metric in [dataset.ValidationMetric.FEATURE_MISSING, dataset.ValidationMetric.SEGMENTATION_MISSING]:
+                num_per_key = []
+
+                for k, v in result[metric].items():
+                    num_per_key.append('{} : {}'.format(k, len(v)))
+
+                info_data['num_{}'.format(metric.value)] = ', '.join(num_per_key)
+            else:
                 info_data['num_{}'.format(metric.value)] = len(result[metric])
-
-        for metric in [dataset.ValidationMetric.FEATURE_MISSING, dataset.ValidationMetric.SEGMENTATION_MISSING]:
-            num_per_key = []
-
-            for k, v in result[metric].items():
-                num_per_key.append('{} : {}'.format(k, len(v)))
-
-            info_data['num_{}'.format(metric.value)] = ', '.join(num_per_key)
 
         if self.app.pargs.detailed:
             info_data["details"] = True
 
             for metric in dataset.ValidationMetric:
-                if metric in [dataset.ValidationMetric.FEATURE_MISSING]:
+                if metric in [dataset.ValidationMetric.FEATURE_MISSING, dataset.ValidationMetric.SEGMENTATION_MISSING]:
                     values_per_feat = []
 
                     for k, v in result[metric].items():
-                        values_per_feat.append('{} : {}'.format(k, [', '.join(v)]))
+                        values_per_feat.append('{} : {}'.format(k, [', '.join([str(x) for x in v])]))
 
                     info_data[metric.value] = values_per_feat
                 else:
