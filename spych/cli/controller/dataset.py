@@ -98,7 +98,15 @@ class MainController(controller.CementBaseController):
             info_data["details"] = True
 
             for metric in dataset.ValidationMetric:
-                info_data[metric.value] = result[metric]
+                if metric in [dataset.ValidationMetric.FEATURE_MISSING]:
+                    values_per_feat = []
+
+                    for k, v in result[metric].items():
+                        values_per_feat.append('{} : {}'.format(k, [', '.join(v)]))
+
+                    info_data[metric.value] = values_per_feat
+                else:
+                    info_data[metric.value] = result[metric]
 
         self.app.render(info_data, 'dataset_validation.mustache')
 
