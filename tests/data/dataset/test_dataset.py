@@ -38,7 +38,7 @@ class DatasetTest(unittest.TestCase):
         wav_path = resources.get_wav_file_path('wav_1.wav')
         file_obj = self.dataset.add_file(wav_path)
 
-        self.assertEqual(os.path.relpath(wav_path, self.dataset.path), file_obj.path)
+        self.assertEqual(os.path.abspath(wav_path), file_obj.path)
         self.assertIsNotNone(file_obj.idx)
         self.assertEqual(file_obj, self.dataset.files[file_obj.idx])
 
@@ -46,7 +46,7 @@ class DatasetTest(unittest.TestCase):
         wav_path = resources.get_wav_file_path('wav_1.wav')
         file_obj = self.dataset.add_file(wav_path, file_idx='file_id_1')
 
-        self.assertEqual(os.path.relpath(wav_path, self.dataset.path), file_obj.path)
+        self.assertEqual(os.path.abspath(wav_path), file_obj.path)
         self.assertEqual('file_id_1', file_obj.idx)
         self.assertEqual(file_obj, self.dataset.files[file_obj.idx])
 

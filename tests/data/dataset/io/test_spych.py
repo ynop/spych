@@ -25,7 +25,7 @@ class SpychDatasetLoaderTest(unittest.TestCase):
         self.assertEqual(3, loaded_dataset.num_speakers)
         self.assertEqual(2, loaded_dataset.num_subviews)
 
-        self.assertEqual('wav_1.wav', loaded_dataset.files['file-1'].path)
+        self.assertEqual(os.path.abspath(os.path.join(loaded_dataset.path, 'wav_1.wav')), loaded_dataset.files['file-1'].path)
 
         self.assertIn('utt-4', loaded_dataset.utterances.keys())
 
@@ -86,5 +86,9 @@ class SpychDatasetLoaderTest(unittest.TestCase):
         self.assertIn('speakers.json', os.listdir(path))
         self.assertIn('utt2spk.txt', os.listdir(path))
         self.assertIn('segmentation_text.txt', os.listdir(path))
+        self.assertIn('subview_sv.txt', os.listdir(path))
+
+        with open(os.path.join(path, 'subview_sv.txt'), 'r') as f:
+            print(f.read())
 
         shutil.rmtree(path, ignore_errors=True)

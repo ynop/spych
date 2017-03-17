@@ -101,7 +101,8 @@ class MainController(controller.CementBaseController):
                     values_per_feat = []
 
                     for k, v in result[metric].items():
-                        values_per_feat.append('{} : {}'.format(k, [', '.join([str(x) for x in v])]))
+                        if len(v) > 0:
+                            values_per_feat.append('{} : {}'.format(k, ', '.join([str(x) for x in v])))
 
                     info_data[metric.value] = values_per_feat
                 else:

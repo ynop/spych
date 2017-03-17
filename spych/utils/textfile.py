@@ -77,7 +77,7 @@ def write_separated_lines(path, values, separator=' ', sort_by_column=0):
             items = values.items()
 
         for key, value in items:
-            if type(value) is list:
+            if type(value) in [list, set]:
                 value = separator.join([str(x) for x in value])
 
             f.write('{}{}{}\n'.format(key, separator, value))

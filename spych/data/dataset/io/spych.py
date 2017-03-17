@@ -38,7 +38,7 @@ class SpychDatasetLoader(base.DatasetLoader):
         # Read files
         file_path = os.path.join(loading_dataset.path, FILES_FILE_NAME)
         for file_idx, file_path in textfile.read_key_value_lines(file_path, separator=' ').items():
-            loading_dataset.add_file(file_path, file_idx=file_idx, copy_file=False)
+            loading_dataset.add_file(os.path.abspath(os.path.join(loading_dataset.path, file_path)), file_idx=file_idx, copy_file=False)
 
         # Read speakers
         speaker_path = os.path.join(loading_dataset.path, SPEAKER_INFO_FILE_NAME)

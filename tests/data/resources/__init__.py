@@ -44,6 +44,9 @@ def create_dataset():
     segm_4 = ds.add_segmentation(utt_4.idx, segments='who are they')
     segm_5 = ds.add_segmentation(utt_5.idx, segments='who is she')
 
+    sv = dataset.Subview(filtered_utterances=['utt-2', 'utt-4'])
+    ds.add_subview('sv', sv)
+
     return ds
 
 

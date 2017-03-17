@@ -15,6 +15,9 @@ class Dataset(object):
     """
     Represents an audio dataset.
 
+    Notes on paths:
+    All paths stored in the dataset object (audio files, features) are absolute.
+
     :param path: Path to a directory on the filesystem, which acts as root folder for the dataset.
                 If no path is given the dataset cannot be saved on disk.
     :param loader: This object is used to save the dataset. By default :class:`spych.data.dataset.io.SpychDatasetLoader` is used.
@@ -46,7 +49,7 @@ class Dataset(object):
         if self.path is None:
             return "undefined"
         else:
-            return os.path.basename(self.path)
+            return os.path.basename(os.path.abspath(self.path))
 
     def save(self):
         """ Save this dataset at self.path. """
@@ -154,14 +157,14 @@ class Dataset(object):
 
             while os.path.exists(full_path):
                 final_file_path = '{}.wav'.format(naming.generate_name(15))
-                full_path = os.path.join(self.path, final_file_path)
+                full_path = os.path.abspath(os.path.join(self.path, final_file_path))
 
             shutil.copy(path, full_path)
         else:
             if os.path.isabs(path):
-                final_file_path = os.path.relpath(path, self.path)
-            else:
                 final_file_path = path
+            else:
+                final_file_path = os.path.abspath(path)
 
         file_obj = data.File(final_file_idx, final_file_path)
         self.files[final_file_idx] = file_obj

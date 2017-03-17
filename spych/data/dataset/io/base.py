@@ -55,7 +55,7 @@ class DatasetLoader(object):
             else:
                 base_path = dataset.path
 
-            files = {file.idx: self._wav_path(file.path, base_path, path) for file in dataset.files.values()}
+            files = {file.idx: os.path.relpath(file.path, base_path) for file in dataset.files.values()}
 
         self._save(dataset, path, files, copy_files=copy_files)
 
@@ -63,16 +63,11 @@ class DatasetLoader(object):
         """ Effectively saves the dataset. Override in subclass. """
         raise NotImplementedError('Loader {} does not support saving datasets.'.format(self.type()))
 
-    def _wav_path(self, rel_wav, current_base, target_base):
-        current_abs = os.path.abspath(os.path.join(current_base, rel_wav))
-        target_rel = os.path.relpath(current_abs, target_base)
-        return target_rel
-
     def _copy_wavs(self, dataset, path):
         new_files = {}
 
         for file_idx, file in dataset.files.items():
-            source_path = os.path.abspath(os.path.join(dataset.path, file.path))
+            source_path = file.path
             target_folder = os.path.abspath(os.path.join(path, 'audio_files'))
             target_path = os.path.join(target_folder, os.path.basename(file.path))
             rel_path = os.path.relpath(target_path, path)
