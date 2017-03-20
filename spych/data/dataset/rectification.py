@@ -42,28 +42,28 @@ class Rectifier(object):
             Rectifier.remove_utterances_with_missing_file(dataset_to_fix)
 
     @staticmethod
-    def remove_files_missing(self, dataset_to_fix):
+    def remove_files_missing(dataset_to_fix):
         """ Delete all files references, where the referenced wav file doesn't exist. """
         files_missing = validation.Validator.get_files_missing(dataset_to_fix)
-        dataset_to_fix.remove_wavs(files_missing, remove_files=False)
+        dataset_to_fix.remove_files(files_missing, delete_files=False)
         dataset_to_fix.save()
 
     @staticmethod
-    def remove_empty_wavs(self, dataset_to_fix):
+    def remove_empty_wavs(dataset_to_fix):
         """ Delete all files that have no content. """
         empty_files = validation.Validator.get_files_empty(dataset_to_fix)
-        dataset_to_fix.remove_wavs(empty_files, remove_files=True)
+        dataset_to_fix.remove_files(empty_files, delete_files=True)
         dataset_to_fix.save()
 
     @staticmethod
-    def remove_files_with_wrong_format(self, dataset_to_fix, expected_format=audio_format.AudioFileFormat.wav_mono_16bit_16k()):
+    def remove_files_with_wrong_format(dataset_to_fix, expected_format=audio_format.AudioFileFormat.wav_mono_16bit_16k()):
         """ Delete all wav files with the wrong format (Sampling rate, sample width, ...). """
         wrong_files = validation.Validator.get_files_with_wrong_format(dataset_to_fix, expected_format)
-        dataset_to_fix.remove_wavs(wrong_files, remove_files=True)
+        dataset_to_fix.remove_files(wrong_files, delete_files=True)
         dataset_to_fix.save()
 
     @staticmethod
-    def remove_utterances_with_missing_file(self, dataset_to_fix):
+    def remove_utterances_with_missing_file(dataset_to_fix):
         """ Remove all utterances where the referenced file doesn't exist. """
         utts = validation.Validator.get_utterances_with_missing_file_idx(dataset_to_fix)
         dataset_to_fix.remove_utterances(utts)
