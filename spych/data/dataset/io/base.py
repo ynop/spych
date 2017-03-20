@@ -50,12 +50,7 @@ class DatasetLoader(object):
         if copy_files and dataset.path != path:
             files = self._copy_wavs(dataset, path)
         else:
-            if dataset.path is None:
-                base_path = os.getcwd()
-            else:
-                base_path = dataset.path
-
-            files = {file.idx: os.path.relpath(file.path, base_path) for file in dataset.files.values()}
+            files = {file.idx: os.path.relpath(file.path, path) for file in dataset.files.values()}
 
         self._save(dataset, path, files, copy_files=copy_files)
 
