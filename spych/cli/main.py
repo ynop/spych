@@ -3,6 +3,8 @@ from cement.core import foundation
 from spych.cli.controller import base
 from spych.cli.controller import dataset
 from spych.cli.controller import segmentation
+
+
 class SpychApp(foundation.CementApp):
     class Meta:
         label = 'spych'

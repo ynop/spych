@@ -1,6 +1,7 @@
 import os
+
 from cement.core import controller
-from spych.assets import ctm
+
 from spych.dataset import segmentation
 
 
@@ -13,20 +14,20 @@ class ConvertSegmentsController(controller.CementBaseController):
 
         arguments = [
             (['infile'], dict(action='store',
-                            help='Path to input file.')),
-            (['outfile'], dict(action='store',
-                              help='Path to output file.')),
-            (['--informat'], dict(action='store',
-                              help='Input file format.',
-                            choices=['audacity','ctm'])),
-            (['--outformat'], dict(action='store',
-                              help='Output file format.',
-                            choices=['audacity','ctm'])),
-            (['--remove-labels'], dict(action='store',
                               help='Path to input file.')),
+            (['outfile'], dict(action='store',
+                               help='Path to output file.')),
+            (['--informat'], dict(action='store',
+                                  help='Input file format.',
+                                  choices=['audacity', 'ctm'])),
+            (['--outformat'], dict(action='store',
+                                   help='Output file format.',
+                                   choices=['audacity', 'ctm'])),
+            (['--remove-labels'], dict(action='store',
+                                       help='Path to input file.')),
             (['--replace'], dict(action='store',
-                              help='Replace things.',
-                            choices=['Jingle:Musik','Werbung:Sprache']))
+                                 help='Replace things.',
+                                 choices=['Jingle:Musik', 'Werbung:Sprache']))
         ]
 
     @controller.expose(hide=True)
@@ -36,11 +37,10 @@ class ConvertSegmentsController(controller.CementBaseController):
         inputfile_path = self.app.pargs.infile
         outfile_path = self.app.pargs.outfile
 
-        os.makedirs(outfile_path,exist_ok=True)
+        os.makedirs(outfile_path, exist_ok=True)
 
         segmentations = segmentation.Segmentation.from_ctm(inputfile_path)
 
         for seg in segmentations:
-            output_filepath = os.path.join(outfile_path,'{}.txt'.format(seg.utterance_idx))
+            output_filepath = os.path.join(outfile_path, '{}.txt'.format(seg.utterance_idx))
             seg.to_audacity(output_filepath)
-
