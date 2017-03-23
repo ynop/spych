@@ -379,6 +379,19 @@ class Dataset(object):
 
         return segmentation_obj
 
+    def import_segmentation(self, segmentation):
+        """ Adds an existing segmentation to the dataset. Uses key and utterance-id from the segmentation object. """
+
+        if segmentation.utterance_idx is None or segmentation.utterance_idx.strip() == '':
+            raise ValueError('No utterance id given. The segmentation has to be associated with an utterance!')
+
+        if segmentation.utterance_idx not in self.utterances.keys():
+            raise ValueError('Utterance with id {} does not exist!'.format(segmentation.utterance_idx))
+
+        self.segmentations[segmentation.utterance_idx][segmentation.key] = segmentation
+
+        return segmentation
+
     #
     #   FEATURES
     #

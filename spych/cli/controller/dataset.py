@@ -3,6 +3,7 @@ import os
 from cement.core import controller
 
 from spych.data import dataset
+from spych.data import segmentation
 from spych.data.dataset import io
 
 
@@ -210,7 +211,9 @@ class ImportController(controller.CementBaseController):
             (['path'], dict(action='store', help='Path to the dataset to import data into.')),
             (['-f', '--format'], format_argument()),
             (['--scp'], dict(action='store', help='Path to an kaldi scp file (for importing features).')),
-            (['--feat-container'], dict(action='store', help='Name of the feature container to import features into.'))
+            (['--feat-container'], dict(action='store', help='Name of the feature container to import features into.')),
+            (['--ctm'], dict(action='store', help='Path to a ctm file to import as segmentation.')),
+            (['--name'], dict(action='store', help='Name for the segmentation to import'))
         ]
 
     @controller.expose(hide=True)
@@ -236,6 +239,32 @@ class ImportController(controller.CementBaseController):
         dset.save()
 
         print('Imported {} feature-matrices into the dataset with {} utterances.'.format(index + 1, dset.num_utterances))
+
+    @controller.expose(help="Import segmentations.")
+    def segmentation(self):
+        if self.app.pargs.name is None:
+            print('You have to provide a name.')
+            return
+
+        if self.app.pargs.ctm is None:
+            print('You have to provide a ctm file.')
+            return
+
+        segs = segmentation.Segmentation.from_ctm(self.app.pargs.ctm)
+        dset = dataset.Dataset.load(self.app.pargs.path, loader=self.app.pargs.format)
+
+        count = 0
+
+        for seg in segs:
+            if seg.utterance_idx in dset.utterances.keys():
+                seg.key = self.app.pargs.name
+                dset.import_segmentation(seg)
+                count += 1
+
+        dset.save()
+
+        print('Imported {} segmentations with key: {}'.format(count, self.app.pargs.name))
+
 
 
 class ModifyController(controller.CementBaseController):
