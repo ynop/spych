@@ -29,8 +29,28 @@ class Segmentation(object):
         else:
             self.key = key
 
+    @property
+    def first_segment(self):
+        """ Return the first segment. """
+        return self.segments[0]
+
+    @property
+    def last_segment(self):
+        """ Return the last segment. """
+        return self.segments[len(self.segments) - 1]
+
     def to_text(self):
+        """ Return segments concatenated as space separated string. """
         return ' '.join([segment.value for segment in self.segments])
+
+    def to_audacity(self, path):
+        """ Write the segmentation to a audacity label file. """
+        audacity_segments = []
+
+        for segment in self.segments:
+            audacity_segments.append([segment.start, segment.end, segment.value])
+
+        audacity.write_label_file(path, audacity_segments)
 
     @classmethod
     def from_text(cls, text, utterance_idx=None, key=TEXT_SEGMENTATION):
@@ -61,14 +81,3 @@ class Segmentation(object):
                 segmentation.segments.append(segment)
             segmentations.append(segmentation)
         return segmentations
-
-    def to_audacity(self, path):
-        """ Return a list of segmentations from a ctm file"""
-
-        ctm_content = ctm.read_file(path)
-        audacity_segments = []
-
-        for segment in self.segments:
-            audacity_segments.append([segment.start, segment.end, segment.value])
-
-        audacity.write_label_file(path, audacity_segments)
