@@ -1,3 +1,4 @@
+import os
 from spych.assets import ctm
 from spych.assets import audacity
 
@@ -97,13 +98,13 @@ class Segmentation(object):
         """ Return a list of segmentations from an audacity label file"""
         audacity_content = audacity.read_label_file(path)
         segmentations = []
+        temp = os.path.splitext(path)[0]
+        file_name = os.path.basename(temp)
+        segmentation = Segmentation(utterance_idx=file_name)
         for currentItem in audacity_content:
-            segmentation = Segmentation(utterance_idx=currentItem[2])  #todo: utterance_idx not sure what to take here?
             start = currentItem[0]
-            duration = currentItem[1]-start
             end = currentItem[1]
             label = currentItem[2]
             segment = Segment(label, start, end)
             segmentation.segments.append(segment)
-            segmentations.append(segmentation)
         return segmentations
