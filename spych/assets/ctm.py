@@ -4,6 +4,26 @@ import collections
 from spych.utils import textfile
 from spych.assets import audacity
 
+def write_file(path,entries):
+    """
+       Writes a ctm file.
+
+       entries:
+
+       [
+           [waveform_name, waveform_channel, start (seconds), duration (seconds), label],
+           [2015-02-09-15-08-07_Kinect-Beam, 1, 0.82, 0.57, "Jacques"],
+
+           ...
+       ]
+
+       :param path: Path to write the file to.
+       :param entries: List with entries to write.
+       :return:
+       """
+
+    textfile.write_separated_lines(path, entries, separator="\t")
+
 
 def read_file(path):
     """
