@@ -58,7 +58,7 @@ class Segmentation(object):
         ctm_segments = []
 
         for segment in self.segments:
-            ctm_segments.append([segment.id, segment.start, segment.start - segment.end, segment.value])
+            ctm_segments.append([self.utterance_idx, segment.start, segment.end - segment.start, segment.value])
 
         ctm.write_file(path,ctm_segments)
 
@@ -90,14 +90,13 @@ class Segmentation(object):
                 segment = Segment(label, start, start + duration)
                 segmentation.segments.append(segment)
             segmentations.append(segmentation)
-        return segmentations\
+        return segmentations
 
 
     @classmethod
     def from_audacity(cls, path):
         """ Return a list of segmentations from an audacity label file"""
         audacity_content = audacity.read_label_file(path)
-        segmentations = []
         temp = os.path.splitext(path)[0]
         file_name = os.path.basename(temp)
         segmentation = Segmentation(utterance_idx=file_name)
@@ -107,4 +106,4 @@ class Segmentation(object):
             label = currentItem[2]
             segment = Segment(label, start, end)
             segmentation.segments.append(segment)
-        return segmentations
+        return segmentation

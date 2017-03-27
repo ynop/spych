@@ -3,6 +3,7 @@ import os
 from cement.core import controller
 
 from spych.data import segmentation
+from spych.assets import ctm
 
 
 class ConvertSegmentsController(controller.CementBaseController):
@@ -17,12 +18,12 @@ class ConvertSegmentsController(controller.CementBaseController):
                               help='Path to input file.')),
             (['outfile'], dict(action='store',
                                help='Path to output file.')),
-            (['--informat'], dict(action='store',
-                                  help='Input file format.',
-                                  choices=['audacity', 'ctm'])),
-            (['--outformat'], dict(action='store',
-                                   help='Output file format.',
+            (['--in-format'], dict(action='store',
+                                   help='Input file format.',
                                    choices=['audacity', 'ctm'])),
+            (['--out-format'], dict(action='store',
+                                    help='Output file format.',
+                                    choices=['audacity', 'ctm'])),
             (['--remove-labels'], dict(action='store',
                                        help='Path to input file.')),
             (['--replace'], dict(action='store',
@@ -32,15 +33,38 @@ class ConvertSegmentsController(controller.CementBaseController):
 
     @controller.expose(hide=True)
     def default(self):
-        print(self.app.pargs.informat)
-
         inputfile_path = self.app.pargs.infile
         outfile_path = self.app.pargs.outfile
 
-        os.makedirs(outfile_path, exist_ok=True)
+        in_format = self.app.pargs.in_format
+        out_format = self.app.pargs.out_format
 
-        segmentations = segmentation.Segmentation.from_ctm(inputfile_path)
+        if in_format == 'audacity':
+            in_segmentations = [segmentation.Segmentation.from_audacity(inputfile_path)]
+        elif in_format == 'ctm':
+            in_segmentations = segmentation.Segmentation.from_ctm(inputfile_path)
 
-        for seg in segmentations:
-            output_filepath = os.path.join(outfile_path, '{}.txt'.format(seg.utterance_idx))
-            seg.to_audacity(output_filepath)
+        if out_format == 'audacity':
+            if len(in_segmentations) > 1:
+                if not os.path.isdir(outfile_path):
+                    print('When there are multiple input segmentations, a directory has to be provided for audacity export.')
+                else:
+                    for seg in in_segmentations:
+                        seg_path = os.path.join(outfile_path, '{}.txt'.format(seg.utterance_idx))
+                        seg.to_audacity(seg_path)
+            else:
+                seg = in_segmentations[0]
+                if os.path.isdir(outfile_path):
+                    seg_path = os.path.join(outfile_path, '{}.txt'.format(seg.utterance_idx))
+                else:
+                    seg_path = outfile_path
+
+                seg.to_audacity(seg_path)
+        elif out_format == 'ctm':
+            ctm_segments = []
+
+            for seg in in_segmentations:
+                for segment in seg.segments:
+                    ctm_segments.append([seg.utterance_idx, segment.start, segment.end - segment.start, segment.value])
+
+            ctm.write_file(outfile_path, ctm_segments)
