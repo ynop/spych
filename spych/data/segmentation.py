@@ -60,7 +60,7 @@ class Segmentation(object):
         for segment in self.segments:
             ctm_segments.append([self.utterance_idx, segment.start, segment.end - segment.start, segment.value])
 
-        ctm.write_file(path,ctm_segments)
+        ctm.write_file(path, ctm_segments)
 
     @classmethod
     def from_text(cls, text, utterance_idx=None, key=TEXT_SEGMENTATION):
@@ -78,32 +78,42 @@ class Segmentation(object):
 
     @classmethod
     def from_ctm(cls, path):
-        """ Return a list of segmentations from a ctm file"""
+        """ Return a list of segmentations read from a ctm file. """
+
         ctm_content = ctm.read_file(path)
+
         segmentations = []
+
         for utt_id, info in ctm_content.items():
             segmentation = Segmentation(utterance_idx=utt_id)
+
             for segment_info in info:
                 start = segment_info[1]
                 duration = segment_info[2]
                 label = segment_info[3]
                 segment = Segment(label, start, start + duration)
                 segmentation.segments.append(segment)
-            segmentations.append(segmentation)
-        return segmentations
 
+            segmentations.append(segmentation)
+
+        return segmentations
 
     @classmethod
     def from_audacity(cls, path):
-        """ Return a list of segmentations from an audacity label file"""
+        """ Return the segmentation read from an audacity label file. """
+
         audacity_content = audacity.read_label_file(path)
+
         temp = os.path.splitext(path)[0]
         file_name = os.path.basename(temp)
+
         segmentation = Segmentation(utterance_idx=file_name)
+
         for currentItem in audacity_content:
             start = currentItem[0]
             end = currentItem[1]
             label = currentItem[2]
             segment = Segment(label, start, end)
             segmentation.segments.append(segment)
+
         return segmentation

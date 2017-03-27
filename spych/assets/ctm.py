@@ -4,7 +4,8 @@ import collections
 from spych.utils import textfile
 from spych.assets import audacity
 
-def write_file(path,entries):
+
+def write_file(path, entries):
     """
        Writes a ctm file.
 
@@ -22,7 +23,7 @@ def write_file(path,entries):
        :return:
        """
 
-    textfile.write_separated_lines(path, entries, separator="\t")
+    textfile.write_separated_lines(path, entries, separator=" ")
 
 
 def read_file(path):
@@ -58,18 +59,3 @@ def read_file(path):
         utterances[record[0]].append(values)
 
     return utterances
-
-
-def to_audacity_label_file(path, target_folder):
-    records = read_file(path)
-
-    for wav_name, labels in records.items():
-        label_basename = os.path.splitext(os.path.basename(wav_name))[0]
-        label_file = os.path.join(target_folder, '{}.txt'.format(label_basename))
-
-        label_entries = []
-
-        for ctm_entries in labels:
-            label_entries.append([ctm_entries[1], ctm_entries[1] + ctm_entries[2], ctm_entries[3]])
-
-        audacity.write_label_file(label_file, label_entries)
