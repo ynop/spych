@@ -28,9 +28,39 @@ class BatchGenerator(object):
         for i in range(0, len(shuffled_utt_ids), batch_size):
             yield shuffled_utt_ids[i:i + batch_size]
 
-    def generate_feature_batches(self, feature_name, batch_size, splice_sizes=0, splice_step=1, repeat_border_frames=True):
+    def generate_feature_batches(self, feature_name, batch_size):
         """
-        Return a generator which yields batchs. One batch contains the concatenated features of batch_size utterances.
+        Return a generator which yields batches. One batch contains features from batch_size utterances.
+        Yields a list of lists. Every sublist contains first the utterance id and following the feature arrays (ndarray) of all datasets.
+
+        e.g. If there are two source datasets:
+
+        [
+            [utt_id, dataset_1_feature, dataset_2_feature],
+            [utt_id2, dataset_1_feature2, dataset_2_feature2],
+            ...
+        ]
+
+        :param feature_name: Name of the feature container in the dataset to use.
+        :param batch_size: Number of utterances in one batch
+        :return: generator
+        """
+
+        for batch_utt_ids in self.generate_utterance_batches(batch_size):
+
+            batch_features = []
+
+            for utt_id in batch_utt_ids:
+                per_set_features = [x.features[feature_name].load_features_of_utterance(utt_id) for x in self.datasets]
+                per_set_features.insert(0, utt_id)
+                batch_features.append(per_set_features)
+
+            yield batch_features
+
+
+    def generate_spliced_feature_batches(self, feature_name, batch_size, splice_sizes=0, splice_step=1, repeat_border_frames=True):
+        """
+        Return a generator which yields batches. One batch contains the concatenated features of batch_size utterances.
         Yields list with length equal to the number of datasets in this generator. The list contains ndarrays with the concatenated features.
 
         :param feature_name: Name of the feature container in the dataset to use.
