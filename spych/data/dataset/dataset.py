@@ -3,6 +3,7 @@ import copy
 import os
 import random
 import shutil
+import abc
 
 import librosa
 
@@ -11,7 +12,183 @@ from spych.audio import signal
 from spych.utils import naming
 
 
-class Dataset(object):
+class DatasetBase(metaclass=abc.ABCMeta):
+    """
+    Defines the base interface for an audio dataset.
+    """
+
+    @property
+    @abc.abstractmethod
+    def name(self):
+        """ Return the name of the dataset (Equals basename of the path, if not None). """
+        return "undefined"
+
+    @property
+    @abc.abstractmethod
+    def files(self):
+        """ Return a dictionary containing file-objs with the file-id as key. """
+        return {}
+
+    @property
+    @abc.abstractmethod
+    def utterances(self):
+        """ Return a dictionary containing utterance-objs with the utterance-id as key. """
+        return {}
+
+    @property
+    @abc.abstractmethod
+    def segmentations(self):
+        """ Return a dictionary of dictionaries containing segmentation key/obj with the utterance-id as key. """
+        return {}
+
+    @property
+    @abc.abstractmethod
+    def speakers(self):
+        """ Return a dictionary containing speaker-objs with the speaker-id as key. """
+        return {}
+
+    @property
+    @abc.abstractmethod
+    def features(self):
+        """ Return a dictionary containing feature-containers with the feature-name as key. """
+        return {}
+
+    #
+    #   Files
+    #
+
+    @property
+    def num_files(self):
+        """ Return number of files. """
+        return len(self.files)
+
+    def add_random_noise(self, snr=None, snr_range=None):
+        """
+        Adds generated noise to all files in the dataset with the given SNR.
+
+        :param snr: Signal-to-Noise-Ratio [dB]
+        :param snr_range: Uses a random Signal-to-Noise-Ratio [dB] in the given range (start,end)
+        """
+        for file in self.files.values():
+            used_snr = snr
+
+            if snr_range is not None:
+                used_snr = random.randint(snr_range[0], snr_range[1])
+
+            signal.add_random_noise_to_wav(file.path, file.path, snr=used_snr)
+
+    #
+    #   Utterances
+    #
+
+    @property
+    def num_utterances(self):
+        """ Return number of utterances. """
+        return len(self.utterances)
+
+    def utterances_in_file(self, file_idx):
+        """ Return all utterances that are in the given file. """
+
+        utterances = set()
+
+        for utt in self.utterances.values():
+            if utt.file_idx == file_idx:
+                utterances.add(utt)
+
+        return utterances
+
+    def utterances_of_speaker(self, speaker_idx):
+        """ Returns all utterances of the given speaker. """
+        utterances = set()
+
+        for utt in self.utterances.values():
+            if utt.speaker_idx == speaker_idx:
+                utterances.add(utt)
+
+        return utterances
+
+    def speaker_to_utterance_dict(self):
+        """ Return a dict with speaker to utterances mapping. """
+
+        spk2utt = collections.defaultdict(list)
+
+        for utt in self.utterances.values():
+            spk = self.speakers[utt.speaker_idx]
+            spk2utt[spk].append(utt)
+
+        return spk2utt
+
+    def read_utterance_data(self, utterance_idx, without_start_end_silence=False, word_alignment_key=None):
+        """
+        Read the audio signal for the given utterance. This uses librosa.core.load.
+
+        :param utterance_idx: Utterance-Id to read signal for.
+        :param without_start_end_silence: If True tries to cut off start and end silence based on word alignment.
+        :param word_alignment_key: Key of the segmentation with the word alignment for silence cutoff.
+        :return: tuple (nd-array samples, sampling-rate)
+        """
+        utt = self.utterances[utterance_idx]
+        file_path = self.files[utt.file_idx].path
+
+        start = utt.start
+        end = utt.end
+
+        if without_start_end_silence:
+            if word_alignment_key is None:
+                raise ValueError('You have to provide a key pointing to the word alignment segmentations to read without start/end silences.')
+
+            seg = self.segmentations[utterance_idx][word_alignment_key]
+
+            start += seg.first_segment.start
+            end = utt.start + seg.last_segment.end
+
+        if end != data.Utterance.END_FULL_FILE:
+            samples, sampling_rate = librosa.core.load(file_path, sr=None, offset=start, duration=end - start)
+        else:
+            samples, sampling_rate = librosa.core.load(file_path, sr=None, offset=start)
+
+        return samples, sampling_rate
+
+    #
+    #   Speakers
+    #
+    @property
+    def num_speakers(self):
+        """ Return the number of speakers in the dataset. """
+        return len(self.speakers)
+
+    #
+    #   Segmentations
+    #
+    @property
+    def all_segmentation_keys(self):
+        """ Return a set of all occuring segmentation keys. """
+        keys = set()
+
+        for utt_idx, segmentations in self.segmentations.items():
+            keys.update(segmentations.keys())
+
+        return keys
+
+    def all_segmentations_with_key(self, key):
+        """ Return a set of all occurring segmentations with the given key. """
+        raise NotImplementedError('Not yet implemented!')
+
+    def num_segmentations_for_utterance(self, utterance_idx):
+        """ Return the number of segmentations, the given utterance contains. """
+        return len(self.segmentations[utterance_idx])
+
+    #
+    #   Features
+    #
+    def get_features(self, utterance_idx, feature_container):
+        """ Return the features (np array) for the given utterance of the given container. """
+
+        if feature_container in self.features.keys():
+            return self.features[feature_container].load_features_of_utterance(utterance_idx)
+
+
+class Dataset(DatasetBase):
     """
     Represents an audio dataset.
 
@@ -33,12 +210,32 @@ class Dataset(object):
         else:
             self.loader = loader
 
-        self.files = {}
-        self.utterances = {}
-        self.segmentations = collections.defaultdict(dict)
-        self.speakers = {}
+        self._files = {}
+        self._utterances = {}
+        self._segmentations = collections.defaultdict(dict)
+        self._speakers = {}
         self.subviews = {}
-        self.features = {}
+        self._features = {}
+
+    @property
+    def files(self):
+        return self._files
+
+    @property
+    def utterances(self):
+        return self._utterances
+
+    @property
+    def segmentations(self):
+        return self._segmentations
+
+    @property
+    def speakers(self):
+        return self._speakers
+
+    @property
+    def features(self):
+        return self._features
 
     @property
     def name(self):
@@ -110,28 +307,17 @@ class Dataset(object):
         sv = self.subviews[name]
 
         exported_set = Dataset(path=self.path)
-        exported_set.files = copy.deepcopy(sv.files)
-        exported_set.utterances = copy.deepcopy(sv.utterances)
-        exported_set.speakers = copy.deepcopy(sv.speakers)
-        exported_set.segmentations = copy.deepcopy(sv.segmentations)
-        exported_set.features = copy.deepcopy(sv.features)
+        exported_set._files = copy.deepcopy(sv.files)
+        exported_set._utterances = copy.deepcopy(sv.utterances)
+        exported_set._speakers = copy.deepcopy(sv.speakers)
+        exported_set._segmentations = copy.deepcopy(sv.segmentations)
+        exported_set._features = copy.deepcopy(sv.features)
 
         return exported_set
 
     #
     # File
     #
-
-    @property
-    def num_files(self):
-        """ Return number of files. """
-        return len(self.files)
-
-    def set_relative_wav_paths(self, path):
-        """ Sets the given relative path for all wav files. Removes old path if exists. Basename stays as before. """
-        for file_obj in self.files.values():
-            file_obj.set_relative_path(path)
-
     def add_file(self, path, file_idx=None, copy_file=False):
         """
         Adds a new file to the dataset.
@@ -197,44 +383,6 @@ class Dataset(object):
     #
     #   Utterance
     #
-
-    @property
-    def num_utterances(self):
-        """ Return number of utterances. """
-        return len(self.utterances)
-
-    def utterances_in_file(self, file_idx):
-        """ Return all utterances that are in the given file. """
-
-        utterances = set()
-
-        for utt in self.utterances.values():
-            if utt.file_idx == file_idx:
-                utterances.add(utt)
-
-        return utterances
-
-    def utterances_of_speaker(self, speaker_idx):
-        """ Returns all utterances of the given speaker. """
-        utterances = set()
-
-        for utt in self.utterances.values():
-            if utt.speaker_idx == speaker_idx:
-                utterances.add(utt)
-
-        return utterances
-
-    def speaker_to_utterance_dict(self):
-        """ Return a dict with speaker to utterances mapping. """
-
-        spk2utt = collections.defaultdict(list)
-
-        for utt in self.utterances.values():
-            spk = self.speakers[utt.speaker_idx]
-            spk2utt[spk].append(utt)
-
-        return spk2utt
-
     def add_utterance(self, file_idx, utterance_idx=None, speaker_idx=None, start=0, end=-1):
         """
         Adds a new utterance to the dataset.
@@ -284,47 +432,9 @@ class Dataset(object):
             if utt.idx in self.segmentations.keys():
                 del self.segmentations[utt.idx]
 
-    def read_utterance_data(self, utterance_idx, without_start_end_silence=False, word_alignment_key=None):
-        """
-        Read the audio signal for the given utterance. This uses librosa.core.load.
-
-        :param utterance_idx: Utterance-Id to read signal for.
-        :param without_start_end_silence: If True tries to cut off start and end silence based on word alignment.
-        :param word_alignment_key: Key of the segmentation with the word alignment for silence cutoff.
-        :return: tuple (nd-array samples, sampling-rate)
-        """
-        utt = self.utterances[utterance_idx]
-        rel_file_path = self.files[utt.file_idx].path
-        abs_file_path = os.path.join(self.path, rel_file_path)
-
-        start = utt.start
-        end = utt.end
-
-        if without_start_end_silence:
-            if word_alignment_key is None:
-                raise ValueError('You have to provide a key pointing to the word alignment segmentations to read without start/end silences.')
-
-            seg = self.segmentations[utterance_idx][word_alignment_key]
-
-            start += seg.first_segment.start
-            end = utt.start + seg.last_segment.end
-
-        if end != data.Utterance.END_FULL_FILE:
-            samples, sampling_rate = librosa.core.load(abs_file_path, sr=None, offset=start, duration=end - start)
-        else:
-            samples, sampling_rate = librosa.core.load(abs_file_path, sr=None, offset=start)
-
-        return samples, sampling_rate
-
     #
     #   Speaker
     #
-
-    @property
-    def num_speakers(self):
-        """ Return the number of speakers in the dataset. """
-        return len(self.speakers)
-
     def add_speaker(self, speaker_idx=None, gender=None):
         """
         Adds a new speaker to the dataset.
@@ -347,25 +457,6 @@ class Dataset(object):
     #
     #   Segmentation
     #
-
-    @property
-    def all_segmentation_keys(self):
-        """ Return a set of all occuring segmentation keys. """
-        keys = set()
-
-        for utt_idx, segmentations in self.segmentations.items():
-            keys.update(segmentations.keys())
-
-        return keys
-
-    def all_segmentations_with_key(self, key):
-        """ Return a set of all occurring segmentations with the given key. """
-        raise NotImplementedError('Not yet implemented!')
-
-    def num_segmentations_for_utterance(self, utterance_idx):
-        """ Return the number of segmentations, the given utterance contains. """
-        return len(self.segmentations[utterance_idx])
-
     def add_segmentation(self, utterance_idx, segments=None, key=None):
         """
         Adds a new segmentation.
@@ -443,12 +534,6 @@ class Dataset(object):
             raise ValueError('Utterance with id {} does not exist!'.format(utterance_idx))
 
         self.features[feature_container].add_features_for_utterance(utterance_idx, feature_matrix)
-
-    def get_features(self, utterance_idx, feature_container):
-        """ Return the features (np array) for the given utterance of the given container. """
-
-        if feature_container in self.features.keys():
-            return self.features[feature_container].load_features_of_utterance(utterance_idx)
 
     #
     #   DIV
@@ -571,19 +656,3 @@ class Dataset(object):
                         del self.segmentations[utt_id]
 
                 start_index += num_utts_new
-
-    def add_random_noise(self, snr=None, snr_range=None):
-        """
-        Adds generated noise to all files in the dataset with the given SNR.
-
-        :param snr: Signal-to-Noise-Ratio [dB]
-        :param snr_range: Uses a random Signal-to-Noise-Ratio [dB] in the given range (start,end)
-        """
-        for file in self.files.values():
-            used_snr = snr
-
-            if snr_range is not None:
-                used_snr = random.randint(snr_range[0], snr_range[1])
-
-            full_path = os.path.abspath(os.path.join(self.path, file.path))
-            signal.add_random_noise_to_wav(full_path, full_path, snr=used_snr)

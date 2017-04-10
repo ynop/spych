@@ -1,7 +1,10 @@
 import re
 
 
-class Subview(object):
+from spych.data.dataset import dataset
+
+
+class Subview(dataset.DatasetBase):
     """
     A subview is a filtered view on a dataset. For example it only uses a subset of utterance-id's.
     """
@@ -17,6 +20,10 @@ class Subview(object):
 
         self.utterance_idx_not_patterns = set()
         self.speaker_idx_not_patterns = set()
+
+    @property
+    def name(self):
+        return 'subview of {}'.format(self.dataset.name)
 
     @property
     def files(self):
