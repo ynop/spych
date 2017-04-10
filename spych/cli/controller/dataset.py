@@ -212,8 +212,10 @@ class ImportController(controller.CementBaseController):
             (['-f', '--format'], format_argument()),
             (['--scp'], dict(action='store', help='Path to an kaldi scp file (for importing features).')),
             (['--feat-container'], dict(action='store', help='Name of the feature container to import features into.')),
+            (['--segmentation-key'], dict(action='store', help='Name for the segmentation to import')),
             (['--ctm'], dict(action='store', help='Path to a ctm file to import as segmentation.')),
-            (['--name'], dict(action='store', help='Name for the segmentation to import'))
+            (['--audacity'], dict(action='store', help='Path to a audacity file to import as segmentation.')),
+            (['--utterance-id'], dict(action='store', help='Utterance id (When importing audacity label file).'))
         ]
 
     @controller.expose(hide=True)
@@ -242,29 +244,39 @@ class ImportController(controller.CementBaseController):
 
     @controller.expose(help="Import segmentations.")
     def segmentation(self):
-        if self.app.pargs.name is None:
-            print('You have to provide a name.')
+        if self.app.pargs.segmentation_key is None:
+            print('You have to provide a segmentation key.')
             return
 
-        if self.app.pargs.ctm is None:
-            print('You have to provide a ctm file.')
+        if self.app.pargs.ctm is None and self.app.pargs.audacity is None:
+            print('You have to provide a segmentation file (--ctm, --audacity).')
             return
 
-        segs = segmentation.Segmentation.from_ctm(self.app.pargs.ctm)
         dset = dataset.Dataset.load(self.app.pargs.path, loader=self.app.pargs.format)
 
         count = 0
 
-        for seg in segs:
-            if seg.utterance_idx in dset.utterances.keys():
-                seg.key = self.app.pargs.name
+        if self.app.pargs.ctm is not None:
+            segs = segmentation.Segmentation.from_ctm(self.app.pargs.ctm)
+
+            for seg in segs:
+                if seg.utterance_idx in dset.utterances.keys():
+                    seg.key = self.app.pargs.segmentation_key
+                    dset.import_segmentation(seg)
+                    count += 1
+        elif self.app.pargs.audacity is not None:
+            if self.app.pargs.utterance_id is None:
+                print('You have to provide an utterance-id to import the audacity labels to.')
+            else:
+                seg = segmentation.Segmentation.from_audacity(self.app.pargs.audacity)
+                seg.key = self.app.pargs.segmentation_key
+                seg.utterance_idx = self.app.pargs.utterance_id
                 dset.import_segmentation(seg)
                 count += 1
 
         dset.save()
 
         print('Imported {} segmentations with key: {}'.format(count, self.app.pargs.name))
-
 
 
 class ModifyController(controller.CementBaseController):
