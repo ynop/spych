@@ -31,6 +31,10 @@ class Segmentation(object):
             self.key = key
 
     @property
+    def length(self):
+        return len(self.segments)
+
+    @property
     def first_segment(self):
         """ Return the first segment. """
         return self.segments[0]
@@ -39,6 +43,12 @@ class Segmentation(object):
     def last_segment(self):
         """ Return the last segment. """
         return self.segments[len(self.segments) - 1]
+
+    def append(self, segment, start=-1, end=-1):
+        if isinstance(segment, Segment):
+            self.segments.append(segment)
+        else:
+            self.segments.append(Segment(segment, start, end))
 
     def to_text(self):
         """ Return segments concatenated as space separated string. """

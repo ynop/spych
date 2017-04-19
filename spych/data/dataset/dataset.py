@@ -5,6 +5,8 @@ import random
 import shutil
 import abc
 
+import numpy as np
+
 import librosa
 
 from spych import data
@@ -118,7 +120,7 @@ class DatasetBase(metaclass=abc.ABCMeta):
 
         return spk2utt
 
-    def read_utterance_data(self, utterance_idx, without_start_end_silence=False, word_alignment_key=None):
+    def read_utterance_data(self, utterance_idx, without_start_end_silence=False, word_alignment_key=None, dtype=np.float32):
         """
         Read the audio signal for the given utterance. This uses librosa.core.load.
 
@@ -143,9 +145,9 @@ class DatasetBase(metaclass=abc.ABCMeta):
             end = utt.start + seg.last_segment.end
 
         if end != data.Utterance.END_FULL_FILE:
-            samples, sampling_rate = librosa.core.load(file_path, sr=None, offset=start, duration=end - start)
+            samples, sampling_rate = librosa.core.load(file_path, sr=None, offset=start, duration=end - start, dtype=dtype)
         else:
-            samples, sampling_rate = librosa.core.load(file_path, sr=None, offset=start)
+            samples, sampling_rate = librosa.core.load(file_path, sr=None, offset=start, dtype=dtype)
 
         return samples, sampling_rate
 
