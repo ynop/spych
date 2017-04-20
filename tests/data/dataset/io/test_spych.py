@@ -88,7 +88,4 @@ class SpychDatasetLoaderTest(unittest.TestCase):
         self.assertIn('segmentation_text.txt', os.listdir(path))
         self.assertIn('subview_sv.txt', os.listdir(path))
 
-        with open(os.path.join(path, 'subview_sv.txt'), 'r') as f:
-            print(f.read())
-
         shutil.rmtree(path, ignore_errors=True)

@@ -6,7 +6,9 @@ TEXT_SEGMENTATION = 'text'
 RAW_TEXT_SEGMENTATION = 'raw_text'
 
 
-class Segment(object):
+class Token(object):
+    """ Represents an element of a segmentation. """
+
     __slots__ = ['value', 'start', 'end']
 
     def __init__(self, value, start=-1, end=-1):
@@ -16,6 +18,8 @@ class Segment(object):
 
 
 class Segmentation(object):
+    """ Represents a sequence (e.g. Transcription / Alignment). """
+
     __slots__ = ['segments', 'utterance_idx', 'key']
 
     TEXT_SEGMENTATION = 'text'
@@ -45,10 +49,10 @@ class Segmentation(object):
         return self.segments[len(self.segments) - 1]
 
     def append(self, segment, start=-1, end=-1):
-        if isinstance(segment, Segment):
+        if isinstance(segment, Token):
             self.segments.append(segment)
         else:
-            self.segments.append(Segment(segment, start, end))
+            self.segments.append(Token(segment, start, end))
 
     def to_text(self):
         """ Return segments concatenated as space separated string. """
@@ -82,7 +86,7 @@ class Segmentation(object):
         :param key: A key which identifies this segmentation.
         :return: Segmentation object
         """
-        segments = [Segment(x.strip()) for x in list(filter(lambda x: x.strip() != '', text.strip().split(' ')))]
+        segments = [Token(x.strip()) for x in list(filter(lambda x: x.strip() != '', text.strip().split(' ')))]
 
         return cls(segments, utterance_idx=utterance_idx, key=key)
 
@@ -101,7 +105,7 @@ class Segmentation(object):
                 start = segment_info[1]
                 duration = segment_info[2]
                 label = segment_info[3]
-                segment = Segment(label, start, start + duration)
+                segment = Token(label, start, start + duration)
                 segmentation.segments.append(segment)
 
             segmentations.append(segmentation)
@@ -123,7 +127,7 @@ class Segmentation(object):
             start = currentItem[0]
             end = currentItem[1]
             label = currentItem[2]
-            segment = Segment(label, start, end)
+            segment = Token(label, start, end)
             segmentation.segments.append(segment)
 
         return segmentation

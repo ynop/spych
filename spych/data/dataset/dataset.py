@@ -120,6 +120,14 @@ class DatasetBase(metaclass=abc.ABCMeta):
 
         return spk2utt
 
+    def speaker_of_utterance(self, utt_idx):
+        """ Return the speaker of the given utterance. """
+
+        if isinstance(utt_idx, data.Utterance):
+            return self.speakers[utt_idx.speaker_idx]
+        else:
+            return self.speakers[self.utterances[utt_idx].speaker_idx]
+
     def read_utterance_data(self, utterance_idx, without_start_end_silence=False, word_alignment_key=None, dtype=np.float32):
         """
         Read the audio signal for the given utterance. This uses librosa.core.load.
@@ -202,6 +210,8 @@ class Dataset(DatasetBase):
     :param loader: This object is used to save the dataset. By default :class:`spych.data.dataset.io.SpychDatasetLoader` is used.
     :type loader: :class:`spych.data.dataset.io.DatasetLoader`
     """
+
+    _default_file_folder = 'audio_files'
 
     def __init__(self, path=None, loader=None):
         self.path = path
@@ -320,6 +330,10 @@ class Dataset(DatasetBase):
     #
     # File
     #
+    def import_file(self, file, copy_file=False):
+        """ Import a copy the given file and return the new file obj. """
+        return self.add_file(file.path, file_idx=file.idx, copy_file=copy_file)
+
     def add_file(self, path, file_idx=None, copy_file=False):
         """
         Adds a new file to the dataset.
@@ -339,13 +353,18 @@ class Dataset(DatasetBase):
             final_file_idx = file_idx
 
         if copy_file:
+            file_folder = os.path.join(self.path, self._default_file_folder)
+
             basename = os.path.basename(path)
-            final_file_path = basename
+            final_file_path = os.path.join(self._default_file_folder, basename)
             full_path = os.path.join(self.path, final_file_path)
 
             while os.path.exists(full_path):
-                final_file_path = '{}.wav'.format(naming.generate_name(15))
+                final_file_path = os.path.join(self._default_file_folder, '{}.wav'.format(naming.generate_name(15)))
                 full_path = os.path.abspath(os.path.join(self.path, final_file_path))
+
+            if not os.path.isdir(file_folder):
+                os.makedirs(file_folder)
 
             shutil.copy(path, full_path)
         else:
@@ -385,6 +404,14 @@ class Dataset(DatasetBase):
     #
     #   Utterance
     #
+    def import_utterance(self, utterance):
+        """ Import a copy of the given utterance and return the new utterance. """
+        return self.add_utterance(utterance.file_idx,
+                                  utterance_idx=utterance.idx,
+                                  speaker_idx=utterance.speaker_idx,
+                                  start=utterance.start,
+                                  end=utterance.end)
+
     def add_utterance(self, file_idx, utterance_idx=None, speaker_idx=None, start=0, end=-1):
         """
         Adds a new utterance to the dataset.
@@ -437,6 +464,13 @@ class Dataset(DatasetBase):
     #
     #   Speaker
     #
+    def import_speaker(self, speaker):
+        """ Import a copy of the given speaker and return the new speaker. """
+        spk = self.add_speaker(speaker_idx=speaker.idx, gender=speaker.gender)
+        spk.load_speaker_info_from_dict(speaker.get_speaker_info_dict())
+
+        return spk
+
     def add_speaker(self, speaker_idx=None, gender=None):
         """
         Adds a new speaker to the dataset.
@@ -459,6 +493,10 @@ class Dataset(DatasetBase):
     #
     #   Segmentation
     #
+    def import_segmentation(self, segmentation):
+        """ Import a copy of the given segmentation and return the new segmentation. """
+        return self.add_segmentation(segmentation.utterance_idx, segments=copy.deepcopy(segmentation.segments), key=segmentation.key)
+
     def add_segmentation(self, utterance_idx, segments=None, key=None):
         """
         Adds a new segmentation.

@@ -54,7 +54,7 @@ class DatasetTest(unittest.TestCase):
         wav_path = resources.get_wav_file_path('wav_1.wav')
         file_obj = self.dataset.add_file(wav_path, copy_file=True)
 
-        self.assertEqual('wav_1.wav', file_obj.path)
+        self.assertEqual('audio_files/wav_1.wav', file_obj.path)
         self.assertIsNotNone(file_obj.idx)
         self.assertEqual(file_obj, self.dataset.files[file_obj.idx])
 
@@ -152,7 +152,8 @@ class DatasetTest(unittest.TestCase):
         self.assertEqual(10, self.dataset.num_utterances)
         self.assertEqual(10, len(self.dataset.segmentations))
 
-        self.assertEqual(4, len(os.listdir(self.dataset.path)))
+        self.assertEqual(1, len(os.listdir(self.dataset.path)))
+        self.assertEqual(4, len(os.listdir(os.path.join(self.dataset.path, 'audio_files'))))
 
         self.assertIn('utt-4-imp', self.dataset.utterances)
         self.assertEqual('utt-4-imp', self.dataset.utterances['utt-4-imp'].idx)

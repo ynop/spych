@@ -75,7 +75,7 @@ class SpychDatasetLoader(base.DatasetLoader):
             utterance_segments = collections.defaultdict(list)
 
             for record in textfile.read_separated_lines_generator(seg_file, separator=' ', max_columns=4):
-                utterance_segments[record[0]].append(data.Segment(record[3], float(record[1]), float(record[2])))
+                utterance_segments[record[0]].append(data.Token(record[3], float(record[1]), float(record[2])))
 
             for utterance_idx, segments in utterance_segments.items():
                 loading_dataset.add_segmentation(utterance_idx, segments=segments, key=key)
