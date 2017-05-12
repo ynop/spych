@@ -58,6 +58,27 @@ class BatchGenerator(object):
             yield batch_features
 
 
+    def generate_raw_feature_batches(self, feature_name, batch_size):
+        """
+        Return a generator which yields batches. One batch contains concatenated features from batch_size utterances.
+
+        :param feature_name: Name of the feature container in the dataset to use.
+        :param batch_size: Number of utterances in one batch
+        :return: generator
+        """
+
+        for batch_utt_ids in self.generate_utterance_batches(batch_size):
+
+            batch = []
+
+            for ds in self.datasets:
+                per_utt_features = [ds.get_features(x, feature_name) for x in batch_utt_ids]
+                ds_features = np.concatenate(per_utt_features)
+                batch.append(ds_features)
+
+            yield batch
+
+
     def generate_spliced_feature_batches(self, feature_name, batch_size, splice_sizes=0, splice_step=1, repeat_border_frames=True):
         """
         Return a generator which yields batches. One batch contains the concatenated features of batch_size utterances.
