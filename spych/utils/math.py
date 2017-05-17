@@ -52,7 +52,7 @@ def try_distribute_values_proportionally(values, proportions):
     proportions = {'x': 0.6, 'y': 0.2, 'z': 0.2}
 
     out:
-
+    {'x' : [a,b], 'y' : [c,e]} ...
 
     :param values: value_id/value
     :param proportions: prop_id/prop

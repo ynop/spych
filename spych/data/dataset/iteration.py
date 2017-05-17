@@ -71,8 +71,12 @@ class BatchGenerator(object):
 
             batch = []
 
-            for ds in self.datasets:
-                per_utt_features = [ds.get_features(x, feature_name) for x in batch_utt_ids]
+            for index, ds in enumerate(self.datasets):
+                if type(feature_name) == list:
+                    in_feature = feature_name[index]
+                else:
+                    in_feature = feature_name
+                per_utt_features = [ds.get_features(x, in_feature) for x in batch_utt_ids]
                 ds_features = np.concatenate(per_utt_features)
                 batch.append(ds_features)
 

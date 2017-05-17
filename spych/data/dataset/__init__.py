@@ -8,3 +8,5 @@ from .rectification import RectificationTask
 from .rectification import Rectifier
 
 from .iteration import BatchGenerator
+
+from .splitting import Splitter
