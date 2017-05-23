@@ -195,7 +195,8 @@ class DatasetBase(metaclass=abc.ABCMeta):
         """ Return the features (np array) for the given utterance of the given container. """
 
         if feature_container in self.features.keys():
-            return self.features[feature_container].load_features_of_utterance(utterance_idx)
+            with self.features[feature_container] as fc:
+                return fc.get(utterance_idx)
 
 
 class Dataset(DatasetBase):
@@ -552,8 +553,7 @@ class Dataset(DatasetBase):
         else:
             final_feature_path = os.path.join(self.path, path)
 
-        os.makedirs(final_feature_path, exist_ok=True)
-        self.features[name] = data.FeatureContainer(final_feature_path, dataset=self)
+        self.features[name] = data.FeatureContainer(final_feature_path)
 
     def add_features(self, utterance_idx, feature_matrix, feature_container):
         """
@@ -573,7 +573,8 @@ class Dataset(DatasetBase):
         if utterance_idx not in self.utterances.keys():
             raise ValueError('Utterance with id {} does not exist!'.format(utterance_idx))
 
-        self.features[feature_container].add_features_for_utterance(utterance_idx, feature_matrix)
+        with self.features[feature_container] as fc:
+            fc.add(utterance_idx, feature_matrix)
 
     #
     #   DIV

@@ -1,5 +1,4 @@
-import os
-import glob
+import h5py
 
 import numpy as np
 
@@ -9,29 +8,44 @@ class FeatureContainer(object):
     This class defines a container for storing features (of a given type) of all utterances.
     """
 
-    def __init__(self, path, dataset=None):
+    def __init__(self, path):
         self.path = path
-        self.dataset = dataset
+        self.file = None
 
-    def load_features_of_utterance(self, utterance_idx):
-        """ Return the features for the given utterance as numpy array. None if the given utterance has no features."""
-        feature_file_path = os.path.join(self.path, '{}.npy'.format(utterance_idx))
+    def open(self):
+        if self.file is None:
+            self.file = h5py.File(self.path, 'a')
 
-        if os.path.isfile(feature_file_path):
-            return np.load(feature_file_path)
+    def close(self):
+        if self.file is not None:
+            self.file.close()
+            self.file = None
 
-    def add_features_for_utterance(self, utterance_idx, features):
-        """ Stores the given features (numpy array) for the given utterance. """
+    def __enter__(self):
+        self.open()
+        return self
 
-        feature_file_path = os.path.join(self.path, utterance_idx)
-        np.save(feature_file_path, features)
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def add(self, utterance_idx, features):
+        if utterance_idx in self.file:
+            del self.file[utterance_idx]
+
+        self.file.create_dataset(utterance_idx, data=features, compression="lzf")
+
+    def remove(self, utterance_idx):
+        if utterance_idx in self.file:
+            del self.file[utterance_idx]
+
+    def get(self, utterance_idx):
+        if utterance_idx in self.file:
+            return self.file[utterance_idx][()]
+        else:
+            return None
 
     def feature_size(self):
-        """ Return the feature dimension. Just reads a random utterance to get the feature size. """
-        file = glob.glob(os.path.join(self.path, '*.npy'))[0]
-
-        matrix = np.load(file)
-        return np.size(matrix, 1)
+        return list(self.file.items())[0][1].shape[1]
 
     def get_statistics(self):
         """ Return basic stats for the features. Return min,max,mean,meanstdev. """
@@ -41,15 +55,12 @@ class FeatureContainer(object):
         per_utt_vars = []
         per_utt_stdevs = []
 
-        for utterance_idx in self.dataset.utterances.keys():
-            matrix = self.load_features_of_utterance(utterance_idx)
-
-            if matrix is not None:
-                per_utt_mins.append(np.min(matrix))
-                per_utt_maxs.append(np.max(matrix))
-                per_utt_means.append(np.mean(matrix))
-                per_utt_vars.append(np.var(matrix))
-                per_utt_stdevs.append(np.std(matrix))
+        for utt_id, matrix in self.file.items():
+            per_utt_mins.append(np.min(matrix))
+            per_utt_maxs.append(np.max(matrix))
+            per_utt_means.append(np.mean(matrix))
+            per_utt_vars.append(np.var(matrix))
+            per_utt_stdevs.append(np.std(matrix))
 
         min = np.min(per_utt_mins)
         max = np.max(per_utt_maxs)

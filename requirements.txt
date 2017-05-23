@@ -1,9 +1,6 @@
-modgrammar
-beautifulsoup4
-requests
 cement
-httplib2
 pystache
 numpy
 scipy
 librosa
+h5py

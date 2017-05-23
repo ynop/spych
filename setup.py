@@ -25,6 +25,6 @@ setup(name='spych',
       test_suite='nose.collector',
       tests_require=['nose'],
       entry_points={
-          'console_scripts': ['spych=spych.cli.main:run', 'spych-legacy=spych.legacy.cli.main:run'],
+          'console_scripts': ['spych=spych.cli.main:run'],
       }
       )
