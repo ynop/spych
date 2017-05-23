@@ -20,7 +20,7 @@ class BatchGenerator(object):
 
         self._get_utterances_contained_in_all_datasets()
 
-    def generate_utterance_batches(self, batch_size):
+    def batches_with_utterance_idxs(self, batch_size):
         """ Return a generator which yields batches. One batch is a list of utterance-ids of size batch-size. """
 
         shuffled_utt_ids = self._get_shuffled_utterance_ids()
@@ -28,7 +28,7 @@ class BatchGenerator(object):
         for i in range(0, len(shuffled_utt_ids), batch_size):
             yield shuffled_utt_ids[i:i + batch_size]
 
-    def generate_feature_batches(self, feature_name, batch_size):
+    def batches_with_utterance_idx_and_features(self, feature_name, batch_size):
         """
         Return a generator which yields batches. One batch contains features from batch_size utterances.
         Yields a list of lists. Every sublist contains first the utterance id and following the feature arrays (ndarray) of all datasets.
@@ -49,16 +49,25 @@ class BatchGenerator(object):
         for batch_utt_ids in self.generate_utterance_batches(batch_size):
 
             batch_features = []
+            feature_containers = []
+
+            for ds in self.datasets:
+                fc = ds.features[feature_name]
+                fc.open()
+                feature_containers.append(fc)
 
             for utt_id in batch_utt_ids:
-                per_set_features = [x.features[feature_name].load_features_of_utterance(utt_id) for x in self.datasets]
+                per_set_features = [x.get(utt_id) for x in feature_containers]
                 per_set_features.insert(0, utt_id)
                 batch_features.append(per_set_features)
+
+            for fc in feature_containers:
+                fc.close()
 
             yield batch_features
 
 
-    def generate_raw_feature_batches(self, feature_name, batch_size):
+    def batches_with_features(self, feature_name, batch_size):
         """
         Return a generator which yields batches. One batch contains concatenated features from batch_size utterances.
 
@@ -76,14 +85,16 @@ class BatchGenerator(object):
                     in_feature = feature_name[index]
                 else:
                     in_feature = feature_name
-                per_utt_features = [ds.get_features(x, in_feature) for x in batch_utt_ids]
+
+                with ds.features[in_feature] as fc:
+                    per_utt_features = [fc.get(x) for x in batch_utt_ids]
+
                 ds_features = np.concatenate(per_utt_features)
                 batch.append(ds_features)
 
             yield batch
 
-
-    def generate_spliced_feature_batches(self, feature_name, batch_size, splice_sizes=0, splice_step=1, repeat_border_frames=True):
+    def batches_with_spliced_features(self, feature_name, batch_size, splice_sizes=0, splice_step=1, repeat_border_frames=True):
         """
         Return a generator which yields batches. One batch contains the concatenated features of batch_size utterances.
         Yields list with length equal to the number of datasets in this generator. The list contains ndarrays with the concatenated features.
@@ -103,11 +114,17 @@ class BatchGenerator(object):
         for batch_utt_ids in self.generate_utterance_batches(batch_size):
 
             batch_features = [[] for __ in self.datasets]
+            feature_containers = []
+
+            for ds in self.datasets:
+                fc = ds.features[feature_name]
+                fc.open()
+                feature_containers.append(fc)
 
             for utt_id in batch_utt_ids:
 
                 # get the features of all datasets
-                per_set_features = [x.features[feature_name].load_features_of_utterance(utt_id) for x in self.datasets]
+                per_set_features = [x.get(utt_id) for x in feature_containers]
 
                 # clip features to the number of the smallest feature matrix
                 per_set_feature_lengths = [np.size(x, 0) for x in per_set_features]
@@ -118,6 +135,9 @@ class BatchGenerator(object):
                     features = features[:min_feature_length]
                     features = array.splice_features(features, splice_sizes[index], splice_step, repeat_border_frames)
                     batch_features[index].append(features)
+
+            for fc in feature_containers:
+                fc.close()
 
             batch = [np.concatenate(x) for x in batch_features]
 

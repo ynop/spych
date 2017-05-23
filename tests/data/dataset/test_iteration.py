@@ -23,7 +23,7 @@ class BatchGeneratorTest(unittest.TestCase):
     def test_generate_utterance_batches(self):
         generator = iteration.BatchGenerator(self.test_set_a)
 
-        batches = [x for x in generator.generate_utterance_batches(2)]
+        batches = [x for x in generator.batches_with_utterance_idxs(2)]
 
         self.assertEqual(4, len(batches))
 
@@ -35,7 +35,7 @@ class BatchGeneratorTest(unittest.TestCase):
     def test_generate_utterance_batches_two_sets(self):
         generator = iteration.BatchGenerator([self.test_set_a, self.test_set_b])
 
-        batches = [x for x in generator.generate_utterance_batches(2)]
+        batches = [x for x in generator.batches_with_utterance_idxs(2)]
 
         self.assertEqual(3, len(batches))
 
@@ -46,8 +46,8 @@ class BatchGeneratorTest(unittest.TestCase):
     def test_generate_utterance_batches_randomly(self):
         generator = iteration.BatchGenerator([self.test_set_a, self.test_set_b])
 
-        first_run = [x for x in generator.generate_utterance_batches(2)]
-        second_run = [x for x in generator.generate_utterance_batches(2)]
-        third_run = [x for x in generator.generate_utterance_batches(2)]
+        first_run = [x for x in generator.batches_with_utterance_idxs(2)]
+        second_run = [x for x in generator.batches_with_utterance_idxs(2)]
+        third_run = [x for x in generator.batches_with_utterance_idxs(2)]
 
         self.assertFalse(first_run == second_run and first_run == third_run)
