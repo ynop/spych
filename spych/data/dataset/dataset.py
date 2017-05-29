@@ -542,18 +542,24 @@ class Dataset(DatasetBase):
     #   FEATURES
     #
 
-    def add_new_feature_container(self, name, path):
+    def create_feature_container(self, name, path=None):
         """ Create a new feature container """
 
         if name in self.features.keys():
             raise ValueError('Feature container with name {} already exists.'.format(name))
+
+        if path is None:
+            path = 'features_{}'.format(name)
 
         if os.path.isabs(path):
             final_feature_path = path
         else:
             final_feature_path = os.path.join(self.path, path)
 
-        self.features[name] = data.FeatureContainer(final_feature_path)
+        fc = data.FeatureContainer(final_feature_path)
+        self.features[name] = fc
+
+        return fc
 
     def add_features(self, utterance_idx, feature_matrix, feature_container):
         """
