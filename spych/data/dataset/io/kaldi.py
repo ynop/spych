@@ -130,13 +130,16 @@ class KaldiDatasetLoader(base.DatasetLoader):
         # Write features
         if self.main_features is not None:
             fc = dataset.features[self.main_features]
+            fc.open()
             matrices = {}
 
             for utt_id in dataset.utterances.keys():
-                matrix = fc.load_features_of_utterance(utt_id)
+                matrix = fc.get(utt_id)
 
                 if matrix is not None:
                     matrices[utt_id] = matrix
+
+            fc.close()
 
             ark_path = os.path.abspath(os.path.join(path, '{}.ark'.format(FEATS_FILE_NAME)))
             scp_path = os.path.join(path, '{}.scp'.format(FEATS_FILE_NAME))
