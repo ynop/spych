@@ -46,7 +46,7 @@ class BatchGenerator(object):
         :return: generator
         """
 
-        for batch_utt_ids in self.generate_utterance_batches(batch_size):
+        for batch_utt_ids in self.batches_with_utterance_idxs(batch_size):
 
             batch_features = []
             feature_containers = []
@@ -76,7 +76,7 @@ class BatchGenerator(object):
         :return: generator
         """
 
-        for batch_utt_ids in self.generate_utterance_batches(batch_size):
+        for batch_utt_ids in self.batches_with_utterance_idxs(batch_size):
 
             batch = []
 
@@ -111,7 +111,7 @@ class BatchGenerator(object):
         if type(splice_sizes) == int:
             splice_sizes *= len(self.datasets) * [splice_sizes]
 
-        for batch_utt_ids in self.generate_utterance_batches(batch_size):
+        for batch_utt_ids in self.batches_with_utterance_idxs(batch_size):
 
             batch_features = [[] for __ in self.datasets]
             feature_containers = []
