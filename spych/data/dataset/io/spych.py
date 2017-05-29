@@ -108,7 +108,7 @@ class SpychDatasetLoader(base.DatasetLoader):
 
         if os.path.isfile(feat_path):
             for container_name, container_path in textfile.read_key_value_lines(feat_path, separator=' ').items():
-                loading_dataset.add_new_feature_container(container_name, container_path)
+                loading_dataset.create_feature_container(container_name, container_path)
 
     def _save(self, saving_dataset, path, files, copy_files=False):
         # Write files

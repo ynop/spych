@@ -233,7 +233,7 @@ class ImportController(controller.CementBaseController):
         dset = dataset.Dataset.load(self.app.pargs.path, loader=self.app.pargs.format)
 
         if feat_container_name not in dset.features.keys():
-            dset.add_new_feature_container(feat_container_name, 'features_{}'.format(feat_container_name))
+            dset.create_feature_container(feat_container_name)
 
         for index, (utterance_idx, feature_matrix) in enumerate(io.KaldiDatasetLoader.feature_scp_generator(self.app.pargs.scp)):
             dset.add_features(utterance_idx, feature_matrix, feat_container_name)
