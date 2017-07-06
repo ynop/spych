@@ -582,6 +582,29 @@ class Dataset(DatasetBase):
         with self.features[feature_container] as fc:
             fc.add(utterance_idx, feature_matrix)
 
+    def generate_features(self, feature_pipeline, target_feature_name, source_feature_name=None):
+        """
+        Creates new feature container with features generated with the given pipeline.
+        If source_feature_name is not given the pipeline needs an extraction stage.
+        """
+
+        target_fc = self.create_feature_container(target_feature_name)
+        target_fc.open()
+        source_fc = None
+
+        if source_feature_name is not None:
+            source_fc = self.features[source_feature_name]
+            source_fc.open()
+
+        for utterance_id in self.utterances.keys():
+            if source_feature_name is not None:
+                output = feature_pipeline.process(source_fc.get(utterance_id))
+            else:
+                samples, sr = self.read_utterance_data(utterance_id)
+                output = feature_pipeline.process_signal(samples, sr)
+
+            target_fc.add(utterance_id, output)
+
     #
     #   DIV
     #

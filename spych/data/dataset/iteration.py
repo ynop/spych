@@ -28,7 +28,7 @@ class BatchGenerator(object):
         for i in range(0, len(shuffled_utt_ids), batch_size):
             yield shuffled_utt_ids[i:i + batch_size]
 
-    def batches_with_utterance_idx_and_features(self, feature_name, batch_size):
+    def batches_with_utterance_idx_and_features(self, feature_name, batch_size, feature_pipeline=None):
         """
         Return a generator which yields batches. One batch contains features from batch_size utterances.
         Yields a list of lists. Every sublist contains first the utterance id and following the feature arrays (ndarray) of all datasets.
@@ -43,6 +43,7 @@ class BatchGenerator(object):
 
         :param feature_name: Name of the feature container in the dataset to use.
         :param batch_size: Number of utterances in one batch
+        :param feature_pipeline: If not None processes the features with the pipeline.
         :return: generator
         """
 
@@ -57,7 +58,11 @@ class BatchGenerator(object):
                 feature_containers.append(fc)
 
             for utt_id in batch_utt_ids:
-                per_set_features = [x.get(utt_id) for x in feature_containers]
+                if feature_pipeline is not None:
+                    per_set_features = [feature_pipeline.process(x.get(utt_id)) for x in feature_containers]
+                else:
+                    per_set_features = [x.get(utt_id) for x in feature_containers]
+
                 per_set_features.insert(0, utt_id)
                 batch_features.append(per_set_features)
 
@@ -66,13 +71,13 @@ class BatchGenerator(object):
 
             yield batch_features
 
-
-    def batches_with_features(self, feature_name, batch_size):
+    def batches_with_features(self, feature_name, batch_size, feature_pipeline=None):
         """
         Return a generator which yields batches. One batch contains concatenated features from batch_size utterances.
 
         :param feature_name: Name of the feature container in the dataset to use.
         :param batch_size: Number of utterances in one batch
+        :param feature_pipeline: If not None processes the features with the pipeline.
         :return: generator
         """
 
@@ -87,7 +92,10 @@ class BatchGenerator(object):
                     in_feature = feature_name
 
                 with ds.features[in_feature] as fc:
-                    per_utt_features = [fc.get(x) for x in batch_utt_ids]
+                    if feature_pipeline is not None:
+                        per_utt_features = [feature_pipeline.process(fc.get(x)) for x in batch_utt_ids]
+                    else:
+                        per_utt_features = [fc.get(x) for x in batch_utt_ids]
 
                 ds_features = np.concatenate(per_utt_features)
                 batch.append(ds_features)
