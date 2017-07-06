@@ -31,7 +31,7 @@ class MelFilterbankExtractionStage(SpectrumExtractionStage):
 
         return mel
 
-    def compute_features(self, samples, sampling_rate):
+    def extract(self, samples, sampling_rate):
         mel = self.compute_raw(samples, sampling_rate)
         mel = mel.T.astype(np.float32)
 
@@ -50,7 +50,7 @@ class MFCCExtractionStage(MelFilterbankExtractionStage):
 
         return mfcc
 
-    def compute_features(self, samples, sampling_rate):
+    def extract(self, samples, sampling_rate):
         mfcc = self.compute_raw(samples, sampling_rate)
         mfcc = mfcc.T.astype(np.float32)
 
