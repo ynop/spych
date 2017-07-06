@@ -22,7 +22,7 @@ class ExtractionStage(object):
             raise NotImplementedError("Extraction function of stage not implemented.")
 
 
-class FeaturePipeline(object):
+class Pipeline(object):
     def __init__(self, stages=[], extract_stage=None):
         self.extract_stage = extract_stage
         self.stages = stages
