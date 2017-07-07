@@ -10,10 +10,10 @@ class SpychDataset(data.Dataset):
         self.utterance_ids = self._get_utterances_contained_in_all_datasets()
 
     def _get_utterances_contained_in_all_datasets(self):
-        common = set(self.base_datasets[0].utterances.keys())
+        common = set(self.base_datasets[0][0].utterances.keys())
 
         for i in range(1, len(self.base_datasets)):
-            ds = self.base_datasets[i]
+            ds = self.base_datasets[i][0]
             common = common.intersection(ds.utterances.keys())
 
         return common
