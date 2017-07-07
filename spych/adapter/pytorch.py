@@ -53,3 +53,5 @@ class SpychDataset(data.Dataset):
                 output.append(feat_pipe.process(fc.get(utt_id)))
             else:
                 output.append(fc.get(utt_id))
+
+        return output
