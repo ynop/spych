@@ -28,7 +28,7 @@ class RescalingStage(base.ProcessingStage):
         max = self.reference_max
 
         if min is None or max is None:
-            min, max = self._calculate_min_max()
+            min, max = self._calculate_min_max(feature_matrix)
 
         output = (feature_matrix - min) / (max - min)
         output = (output * (self.target_max - self.target_min)) + self.target_min
