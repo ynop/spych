@@ -2,10 +2,9 @@ from torch.utils import data
 
 
 class SpychDataset(data.Dataset):
-    def __init__(self, base_datasets=[], feature_pipeline=None):
+    def __init__(self, base_datasets=[]):
         self.base_datasets = base_datasets
         self.feature_containers = []
-        self.feature_pipeline = feature_pipeline
 
         self.utterance_ids = self._get_utterances_contained_in_all_datasets()
 
@@ -21,10 +20,19 @@ class SpychDataset(data.Dataset):
     def open(self):
         self.feature_containers = []
 
-        for dataset, fc_name in self.base_datasets:
+        for item in self.base_datasets:
+            dataset = item[0]
+            fc_name = item[1]
+
             fc = dataset.features[fc_name]
             fc.open()
-            self.feature_containers.append(fc)
+
+            fpipe = None
+
+            if len(item) > 2:
+                fpipe = item[2]
+
+            self.feature_containers.append((fc, fpipe))
 
     def close(self):
         for fc in self.feature_containers:
@@ -38,7 +46,10 @@ class SpychDataset(data.Dataset):
     def __getitem__(self, item):
         utt_id = self.utterance_ids[item]
 
-        if self.feature_pipeline is not None:
-            return [self.feature_pipeline.process(fc.get(utt_id)) for fc in self.feature_containers]
-        else:
-            return [fc.get(utt_id) for fc in self.feature_containers]
+        output = []
+
+        for fc, feat_pipe in self.feature_containers:
+            if feat_pipe:
+                output.append(feat_pipe.process(fc.get(utt_id)))
+            else:
+                output.append(fc.get(utt_id))
