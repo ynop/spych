@@ -35,15 +35,18 @@ class KaldiDecode(object):
         :return:
         """
         args = [
-            '--nj', str(number_of_jobs),
-            os.path.abspath(graph_folder),
-            os.path.abspath(data_folder),
-            os.path.abspath(decode_folder)
+            '--nj', str(number_of_jobs)
         ]
 
         if model is not None:
             args.append('--model')
             args.append(os.path.abspath(model))
+
+        args.extend([
+            os.path.abspath(graph_folder),
+            os.path.abspath(data_folder),
+            os.path.abspath(decode_folder)
+        ])
 
         self.env.run_bash_script('steps/decode.sh', args=args)
 
