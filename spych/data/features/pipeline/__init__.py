@@ -1,5 +1,7 @@
 from . import base
 
+from.base import Pipeline
+
 from .base import ExtractionStage
 from .base import ProcessingStage
 
