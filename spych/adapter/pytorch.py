@@ -16,7 +16,7 @@ class SpychDataset(data.Dataset):
             ds = self.base_datasets[i][0]
             common = common.intersection(ds.utterances.keys())
 
-        return common
+        return list(common)
 
     def open(self):
         self.feature_containers = []
