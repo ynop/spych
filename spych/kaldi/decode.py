@@ -25,7 +25,7 @@ class KaldiDecode(object):
 
         self.env.run_bash_script('utils/mkgraph.sh', args=args)
 
-    def decode(self, graph_folder, data_folder, decode_folder, number_of_jobs=4):
+    def decode(self, graph_folder, data_folder, decode_folder, model=None, number_of_jobs=4):
         """
         Decodes the given data with the given decoding graph.
         :param graph_folder: Path to folder with the graph.
@@ -34,12 +34,18 @@ class KaldiDecode(object):
         :param number_of_jobs: Number of parallel jobs.
         :return:
         """
-        self.env.run_bash_script('steps/decode.sh', args=[
+        args = [
             '--nj', str(number_of_jobs),
             os.path.abspath(graph_folder),
             os.path.abspath(data_folder),
             os.path.abspath(decode_folder)
-        ])
+        ]
+
+        if model is not None:
+            args.append('--model')
+            args.append(os.path.abspath(model))
+
+        self.env.run_bash_script('steps/decode.sh', args=args)
 
     def create_dummy_reco2file(self, data_folder):
         data_folder = os.path.abspath(data_folder)
