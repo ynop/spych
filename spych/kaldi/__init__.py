@@ -91,7 +91,7 @@ def write_posteriors(ark_path, ds, feat_name):
     fc.close()
 
 
-def write_likelihoods(ark_path, ds, feat_name):  # , priors):
+def write_likelihoods(ark_path, ds, feat_name, priors=None, floor_threshold=1e-4, floor_value=1e-20):
     fc = ds.features[feat_name]
     fc.open()
 
@@ -104,9 +104,11 @@ def write_likelihoods(ark_path, ds, feat_name):  # , priors):
         assert not np.isnan(feats).any(), "NaN in feature matrix, {}".format(utt_id)
         assert not np.isinf(feats).any(), "INF in feature matrix, {}".format(utt_id)
 
-        # feats += 1e-20
-        # feats = feats/priors
-        # feats = np.log(feats)
+        if priors is not None:
+            feats += floor_value
+            feats = np.where(feats < floor_threshold, floor_value, feats)
+            feats = np.log(feats)
+            feats -= priors
 
         f.write(('{} '.format(utt_id)).encode('utf-8'))
 
