@@ -43,20 +43,20 @@ def _utterance_pad_collate(batch):
     return parts
 
 
-def frame_batch_loader(dataset, batch_size=1, shuffle=False, num_workers=0, pin_memory=False, drop_last=False):
+def frame_batch_loader(dataset, batch_size=1, shuffle=False, num_workers=0, pin_memory=False):
     """
     Returns a dataloader which generates batches with concatenated frame from [batch_size] utterances.
     """
     return dataloader.DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers, collate_fn=_custom_collate,
-                                 pin_memory=pin_memory, drop_last=drop_last)
+                                 pin_memory=pin_memory)
 
 
-def padded_utterance_batch_loader(dataset, batch_size=1, shuffle=False, num_workers=0, pin_memory=False, drop_last=False):
+def padded_utterance_batch_loader(dataset, batch_size=1, shuffle=False, num_workers=0, pin_memory=False):
     """
     Returns a dataloader which generates batches with [batch_size] utterances padded to the same length. (batch_size x max_utt_len x frame_dimension)
     """
     return dataloader.DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers, collate_fn=_utterance_pad_collate,
-                                 pin_memory=pin_memory, drop_last=drop_last)
+                                 pin_memory=pin_memory)
 
 
 class Dataset(data.Dataset):
