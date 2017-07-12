@@ -10,7 +10,7 @@ string_classes = (str, bytes)
 
 
 # custom collate to cat frames of different sized utterances together -> cat instead stack
-def custom_collate(batch):
+def _custom_collate(batch):
     "Puts each data field into a tensor with outer dimension batch size"
     if torch.is_tensor(batch[0]):
         out = None
@@ -35,10 +35,10 @@ def custom_collate(batch):
     elif isinstance(batch[0], string_classes):
         return batch
     elif isinstance(batch[0], collections.Mapping):
-        return {key: custom_collate([d[key] for d in batch]) for key in batch[0]}
+        return {key: _custom_collate([d[key] for d in batch]) for key in batch[0]}
     elif isinstance(batch[0], collections.Sequence):
         transposed = zip(*batch)
-        return [custom_collate(samples) for samples in transposed]
+        return [_custom_collate(samples) for samples in transposed]
 
     raise TypeError(("batch must contain tensors, numbers, dicts or lists; found {}"
                      .format(type(batch[0]))))
