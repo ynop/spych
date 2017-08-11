@@ -44,27 +44,29 @@ def _custom_collate(batch):
                      .format(type(batch[0]))))
 
 
-# custom collate to pad utterances to the biggest
-def _utterance_pad_collate(batch):
+# custom collate to add lengths of utterances
+def _utterance_len_collate(batch):
     """
     input: batch_size * nr_feats_per_batch * np.array(utt_len * frame_dimension)
-    output: nr_feats_per_batch * (utt_lengths, tensor(batch_size * max_len * frame_dimension))
+    output: nr_feats_per_batch * (tensor(batch_size * max_len * frame_dimension) + nr_feats_per_batch * batch_size * int(length)
     """
     sorted_samples = sorted(batch, key=lambda x: np.size(x[0], 0), reverse=True)
 
-    parts = []
+    data_parts = []
+    len_parts = []
 
     for batch_part in zip(*sorted_samples):
         lengths = [np.size(x, 0) for x in batch_part]
-        max_length = max(lengths)
+        #max_length = max(lengths)
 
-        padded_utts = [np.pad(utt, ((0, max_length - np.size(utt, 0)), (0, 0)), 'constant') for utt in batch_part]
+        #padded_utts = [np.pad(utt, ((0, max_length - np.size(utt, 0)), (0, 0)), 'constant') for utt in batch_part]
 
-        data = dataloader.default_collate(padded_utts)
+        data = _custom_collate(batch_part)
 
-        parts.append((lengths, data))
+        data_parts.append(data)
+        len_parts.append(lengths)
 
-    return parts
+    return data_parts + len_parts
 
 
 def frame_batch_loader(dataset, batch_size=1, shuffle=False, num_workers=0, pin_memory=False):
@@ -75,11 +77,11 @@ def frame_batch_loader(dataset, batch_size=1, shuffle=False, num_workers=0, pin_
                                  pin_memory=pin_memory)
 
 
-def padded_utterance_batch_loader(dataset, batch_size=1, shuffle=False, num_workers=0, pin_memory=False):
+def frame_with_lengths_batch_loader(dataset, batch_size=1, shuffle=False, num_workers=0, pin_memory=False):
     """
-    Returns a dataloader which generates batches with [batch_size] utterances padded to the same length. (batch_size x max_utt_len x frame_dimension)
+    Returns a dataloader which generates batches with concatenated frame from [batch_size] utterances and appends the lengths.
     """
-    return dataloader.DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers, collate_fn=_utterance_pad_collate,
+    return dataloader.DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers, collate_fn=_utterance_len_collate,
                                  pin_memory=pin_memory)
 
 

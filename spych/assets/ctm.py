@@ -1,8 +1,6 @@
-import os
 import collections
 
 from spych.utils import textfile
-from spych.assets import audacity
 
 
 def write_file(path, entries):
