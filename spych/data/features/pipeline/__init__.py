@@ -18,6 +18,10 @@ from .splicing import UnspliceStage
 from .convertion import MelToMFCCStage
 
 
+def spectrum_extraction_pipeline(win_length=400, win_step=160):
+    return Pipeline(extract_stage=SpectrumExtractionStage(win_length=win_length, win_step=win_step))
+
+
 def mel_extraction_pipeline(win_length=400, win_step=160, num_mel=23):
     return Pipeline(extract_stage=MelFilterbankExtractionStage(num_mel=num_mel, win_length=win_length, win_step=win_step))
 
