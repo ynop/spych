@@ -1,6 +1,8 @@
 import os
 import itertools
 import subprocess
+import shlex
+import logging
 
 
 class KaldiEnv(object):
@@ -15,10 +17,22 @@ class KaldiEnv(object):
         """ Executes the given command in the wsj folder. """
         cwd = os.getcwd()
 
-        command = '{} {}'.format(command, ' '.join(args))
-        print(command)
+        command = '/bin/bash {} {}'.format(command, ' '.join(args))
+        args = shlex.split(command)
+
+        logging.info("EXECUTE {}".format(command))
+
         os.chdir(self.script_path)
         os.system(command)
+        process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+
+        while process.poll() is None:
+            self.log_outputs(process)
+
+        self.log_outputs(process)
+
+        process.wait()
+
         os.chdir(cwd)
 
     def run_cmd(self, cmd, stdin):
@@ -63,3 +77,14 @@ class KaldiEnv(object):
         os.environ['PATH'] = paths
         os.environ['SRILM_ROOT'] = srilm_root
         os.environ['LC_ALL'] = 'C'
+
+    def log_outputs(self, process):
+        l = process.stdout.readline()
+        if l:
+            l = l.strip('\n')
+            logging.info(l)
+
+        e = process.stderr.readline()
+        if e:
+            e = e.strip('\n')
+            logging.error(e)
