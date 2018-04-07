@@ -1,3 +1,5 @@
+# NEW PROJECT AT https://github.com/ynop/pingu
+
 # SPYCH
 
 Spych is a set of python tools for tasks related to automatic speech recognition. The most used functions are accessible via command line interface.
